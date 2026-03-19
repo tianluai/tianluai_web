@@ -1,0 +1,51 @@
+{
+  "workspace": {
+    "create": {
+      "enterName": "Escribe un nombre para el espacio",
+      "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",
+      "getStarted": "Comenzar",
+      "joinLater": "Crea un espacio. Podrás unirte a otros más tarde mediante enlaces de invitación.",
+      "formTitle": "Crear espacio",
+      "namePlaceholder": "Nombre del espacio",
+      "submit": "Crear"
+    },
+    "picker": {
+      "title": "Elige un espacio",
+      "placeholder": "Selecciona un espacio"
+    },
+    "notFound": {
+      "title": "Espacio no encontrado",
+      "description": "Este espacio no existe o no tienes acceso.",
+      "back": "Volver a espacios"
+    },
+    "detail": {
+      "contentPlaceholder": "Tu espacio. El contenido irá aquí."
+    }
+  },
+  "auth": {
+    "notSignedIn": "No has iniciado sesión. Inicia sesión e inténtalo de nuevo.",
+    "apiNotConfigured": "NEXT_PUBLIC_API_URL no está configurada. Revisa tu entorno.",
+    "logOut": "Cerrar sesión"
+  },
+  "common": {
+    "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",
+    "errorConnectApi": "No se pudo conectar con la API.",
+    "errorSessionInvalid": "Sesión inválida o caducada.",
+    "errorApiGeneric": "Error del servicio.",
+    "errorFetchWorkspaces": "No se pudieron cargar los espacios."
+  },
+  "errors": {
+    "apiUnreachable": "No se puede conectar con la API",
+    "apiUnreachableHint": "Comprueba tu conexión e inténtalo de nuevo, o cierra sesión y vuelve a entrar."
+  },
+  "home": {
+    "title": "Tianlu AI",
+    "signInPrompt": "Inicia sesión para acceder a tu espacio.",
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse"
+  },
+  "workspaceSwitcher": {
+    "allWorkspaces": "Todos los espacios",
+    "createWorkspace": "Crear espacio"
+  }
+}

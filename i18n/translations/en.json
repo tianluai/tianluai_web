@@ -1,0 +1,51 @@
+{
+  "workspace": {
+    "create": {
+      "enterName": "Enter a workspace name",
+      "errorGeneric": "Something went wrong. Please try again.",
+      "getStarted": "Get started",
+      "joinLater": "Create a workspace. You can join others later via invite links.",
+      "formTitle": "Create workspace",
+      "namePlaceholder": "Workspace name",
+      "submit": "Create"
+    },
+    "picker": {
+      "title": "Choose a workspace",
+      "placeholder": "Select a workspace"
+    },
+    "notFound": {
+      "title": "Workspace not found",
+      "description": "This workspace does not exist or you don't have access.",
+      "back": "Back to workspaces"
+    },
+    "detail": {
+      "contentPlaceholder": "Your workspace. Content goes here."
+    }
+  },
+  "auth": {
+    "notSignedIn": "Not signed in. Please sign in and try again.",
+    "apiNotConfigured": "NEXT_PUBLIC_API_URL is not set. Check your environment.",
+    "logOut": "Log out"
+  },
+  "common": {
+    "errorGeneric": "Something went wrong. Please try again.",
+    "errorConnectApi": "Could not connect to API.",
+    "errorSessionInvalid": "Invalid or expired session.",
+    "errorApiGeneric": "API error.",
+    "errorFetchWorkspaces": "Failed to load workspaces."
+  },
+  "errors": {
+    "apiUnreachable": "Cannot reach API",
+    "apiUnreachableHint": "Check your connection and try again, or log out and sign in again."
+  },
+  "home": {
+    "title": "Tianlu AI",
+    "signInPrompt": "Sign in to access your workspace.",
+    "signIn": "Sign in",
+    "signUp": "Sign up"
+  },
+  "workspaceSwitcher": {
+    "allWorkspaces": "All workspaces",
+    "createWorkspace": "Create workspace"
+  }
+}
