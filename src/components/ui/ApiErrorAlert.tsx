@@ -2,23 +2,24 @@
 
 import { Alert } from "antd";
 
-type ApiErrorAlertProps = { message?: string | null };
+type ApiErrorAlertProps = {
+  message?: string | null;
+  title?: string;
+  description?: string;
+};
 
-const DEFAULT_MESSAGE =
-  "Ensure NEXT_PUBLIC_API_URL points to the API and CLERK_JWT_KEY is set in the API .env. Log out and sign in again for a fresh token.";
-
-export function ApiErrorAlert({ message }: ApiErrorAlertProps) {
+export function ApiErrorAlert({
+  message,
+  title,
+  description,
+}: ApiErrorAlertProps) {
   if (!message) return null;
   return (
     <Alert
       type="error"
       showIcon
-      message="Cannot reach API"
-      description={
-        <>
-          {message}. {DEFAULT_MESSAGE}
-        </>
-      }
+      message={title}
+      description={description ? `${message} ${description}` : message}
     />
   );
 }

@@ -1,13 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
+import { getApiErrorMessage } from "./api.service";
 import { API_BASE, type Workspace } from "./api-common";
 
 export { API_BASE, type Workspace };
 
 export async function getAuthHeaders(): Promise<Record<string, string>> {
   const { getToken } = await auth();
-  const token =
-    (await getToken({ template: "backend" }).catch(() => null)) ??
-    (await getToken());
+  const token = await getToken();
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
@@ -17,21 +16,14 @@ async function apiFetch(
   path: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  if (!API_BASE) throw new Error("NEXT_PUBLIC_API_URL is not set");
-  const headers = await getAuthHeaders();
-  return fetch(`${API_BASE}${path}`, { ...options, headers });
-}
-
-function getErrorMessage(data: unknown, fallback: string): string {
-  if (
-    data &&
-    typeof data === "object" &&
-    "message" in data &&
-    typeof (data as { message: unknown }).message === "string"
-  ) {
-    return (data as { message: string }).message;
+  if (!API_BASE) throw new Error("auth.apiNotConfigured");
+  try {
+    const headers = await getAuthHeaders();
+    return await fetch(`${API_BASE}${path}`, { ...options, headers });
+  } catch (err) {
+    console.error("[apiFetch]", path, err);
+    throw new Error("common.errorConnectApi");
   }
-  return fallback;
 }
 
 export async function syncUserToApi(): Promise<void> {
@@ -42,15 +34,18 @@ export async function syncUserToApi(): Promise<void> {
   if (res.ok) return;
 
   const data = await res.json().catch(() => ({}));
-  const msg =
-    getErrorMessage(data, res.status === 401 ? "Invalid or expired session" : "API error");
-  throw new Error(msg);
+  const override =
+    res.status === 401 ? "common.errorSessionInvalid" : "common.errorApiGeneric";
+  throw new Error(getApiErrorMessage(data, override));
 }
 
 export async function fetchWorkspaces(): Promise<Workspace[]> {
   const res = await apiFetch("/workspaces");
   if (res.status === 401) return [];
-  if (!res.ok) throw new Error("Failed to fetch workspaces");
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(getApiErrorMessage(data, "common.errorFetchWorkspaces"));
+  }
   return res.json();
 }
 

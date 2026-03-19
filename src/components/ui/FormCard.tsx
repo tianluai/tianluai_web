@@ -12,7 +12,6 @@ export function FormCard({ title, children }: FormCardProps) {
   return (
     <Card
       title={title}
-      className="shadow-sm"
       styles={{
         body: { padding: 24 },
         header: { borderBottom: "1px solid #f0f0f0", fontWeight: 600 },
