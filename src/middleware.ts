@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import createIntlMiddleware from "next-intl/middleware";
+import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 
@@ -12,7 +13,7 @@ const isPublicRoute = createRouteMatcher([
   "/(en|es)/sign-up(.*)",
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const pathname = req.nextUrl.pathname;
   if (pathname.startsWith("/api")) {
     return NextResponse.next();

@@ -14,8 +14,9 @@ export function LocaleSelect() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleChange = (value: string) => {
-    router.replace(pathname, { locale: value as "en" | "es" });
+  const handleChange = (value: unknown) => {
+    const next = typeof value === "string" ? value : String(value ?? "en");
+    router.replace(pathname, { locale: next as "en" | "es" });
   };
 
   return (
