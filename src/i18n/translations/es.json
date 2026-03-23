@@ -38,12 +38,6 @@
     "apiUnreachable": "No se puede conectar con la API",
     "apiUnreachableHint": "Comprueba tu conexión e inténtalo de nuevo, o cierra sesión y vuelve a entrar."
   },
-  "home": {
-    "title": "Tianlu AI",
-    "signInPrompt": "Inicia sesión para acceder a tu espacio.",
-    "signIn": "Iniciar sesión",
-    "signUp": "Registrarse"
-  },
   "workspaceSwitcher": {
     "allWorkspaces": "Todos los espacios",
     "createWorkspace": "Crear espacio"

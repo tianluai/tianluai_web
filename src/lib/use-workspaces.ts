@@ -1,11 +1,14 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useClerk } from "@clerk/nextjs";
+import { useLocale } from "next-intl";
 import { useEffect, useState } from "react";
 import { API_BASE, type Workspace } from "./api-common";
 
 export function useWorkspaces() {
   const { getToken } = useAuth();
+  const { signOut } = useClerk();
+  const locale = useLocale();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +27,10 @@ export function useWorkspaces() {
         const res = await fetch(`${API_BASE}/workspaces`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (res.status === 401) {
+          void signOut({ redirectUrl: `/${locale}/sign-in` });
+          return;
+        }
         if (!cancelled && res.ok) setWorkspaces(await res.json());
       } catch (error) {
         console.error("[useWorkspaces]", error);
@@ -33,7 +40,7 @@ export function useWorkspaces() {
 
     load();
     return () => { cancelled = true; };
-  }, [getToken]);
+  }, [getToken, signOut, locale]);
 
   return { workspaces, loading };
 }

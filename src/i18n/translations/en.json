@@ -38,12 +38,6 @@
     "apiUnreachable": "Cannot reach API",
     "apiUnreachableHint": "Check your connection and try again, or log out and sign in again."
   },
-  "home": {
-    "title": "Tianlu AI",
-    "signInPrompt": "Sign in to access your workspace.",
-    "signIn": "Sign in",
-    "signUp": "Sign up"
-  },
   "workspaceSwitcher": {
     "allWorkspaces": "All workspaces",
     "createWorkspace": "Create workspace"

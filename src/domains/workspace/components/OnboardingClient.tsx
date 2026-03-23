@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { message, Space } from "antd";
+import { useClerk } from "@clerk/nextjs";
 import { createWorkspaceAction } from "../actions";
 import {
   ApiErrorAlert,
@@ -20,6 +21,7 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
+  const { signOut } = useClerk();
   const [loading, setLoading] = useState(false);
   const [createName, setCreateName] = useState("");
 
@@ -32,6 +34,10 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
     setLoading(true);
     const result = await createWorkspaceAction(name, locale);
     setLoading(false);
+    if ("unauthorized" in result) {
+      void signOut({ redirectUrl: `/${locale}/sign-in` });
+      return;
+    }
     if ("redirect" in result) {
       router.push(result.redirect);
       return;
