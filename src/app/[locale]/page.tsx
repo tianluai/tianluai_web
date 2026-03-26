@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 import { useLocale } from "next-intl";
+import { useAuth } from "@/lib/auth/use-auth";
 
 export default function HomePage() {
   const router = useRouter();

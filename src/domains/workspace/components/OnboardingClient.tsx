@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { message, Space } from "antd";
-import { useClerk } from "@clerk/nextjs";
-import { createWorkspaceAction } from "../actions";
+import { useLocale, useTranslations } from "next-intl";
+import { useCreateWorkspace } from "../workspace.queries";
 import {
   ApiErrorAlert,
   Button,
@@ -13,7 +13,6 @@ import {
   Text,
   Title,
 } from "@/components/ui";
-import { useLocale, useTranslations } from "next-intl";
 
 type OnboardingClientProps = { apiError?: string | null };
 
@@ -21,9 +20,8 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
-  const { signOut } = useClerk();
-  const [loading, setLoading] = useState(false);
   const [createName, setCreateName] = useState("");
+  const create = useCreateWorkspace();
 
   const handleCreate = async () => {
     const name = createName.trim();
@@ -31,18 +29,15 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
       message.warning(t("workspace.create.enterName"));
       return;
     }
-    setLoading(true);
-    const result = await createWorkspaceAction(name, locale);
-    setLoading(false);
-    if ("unauthorized" in result) {
-      void signOut({ redirectUrl: `/${locale}/sign-in` });
-      return;
-    }
-    if ("redirect" in result) {
-      router.push(result.redirect);
-      return;
-    }
-    message.error(result.error);
+
+    create.mutate(name, {
+      onSuccess: (workspace) => {
+        router.push(`/${locale}/workspace/${workspace.id}`);
+      },
+      onError: (err) => {
+        message.error(t(err.message));
+      },
+    });
   };
 
   return (
@@ -68,7 +63,7 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
           <Button
             type="primary"
             size="large"
-            loading={loading}
+            loading={create.isPending}
             onClick={handleCreate}
             block
           >

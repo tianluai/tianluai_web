@@ -6,7 +6,7 @@ import { Flex } from "antd";
 import { useLocale, useTranslations } from "next-intl";
 import { Button, Dropdown } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
-import { useWorkspaces } from "@/lib/use-workspaces";
+import { useWorkspaces } from "@/domains/workspace/workspace.queries";
 import type { MenuProps } from "antd";
 
 export function WorkspaceSwitcher({
@@ -17,7 +17,7 @@ export function WorkspaceSwitcher({
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("workspaceSwitcher");
-  const { workspaces, loading } = useWorkspaces();
+  const { data: workspaces = [], isLoading: loading } = useWorkspaces();
 
   const current = workspaces.find((workspace) => workspace.id === currentWorkspaceId);
   const menuItems: MenuProps["items"] = [
