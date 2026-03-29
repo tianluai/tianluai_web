@@ -1,29 +1,19 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Card, Flex, Spin } from "antd";
 import { ScreenLayout, Text, Title } from "@/components/ui";
 import { useTranslations } from "next-intl";
-import { getWorkspaceAction } from "../actions";
+import { useWorkspace } from "../workspace.queries";
 import { WorkspaceNotFoundScreen } from "./WorkspaceNotFoundScreen";
 
 export function WorkspaceDetailScreen() {
   const t = useTranslations("workspace.detail");
   const params = useParams();
   const workspaceId = params?.workspaceId as string;
-  const [workspace, setWorkspace] = useState<{ id: string; name: string } | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: workspace, isLoading } = useWorkspace(workspaceId);
 
-  useEffect(() => {
-    if (!workspaceId) return;
-    getWorkspaceAction(workspaceId).then((w) => {
-      setWorkspace(w);
-      setLoading(false);
-    });
-  }, [workspaceId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <ScreenLayout centered>
         <Spin size="large" />

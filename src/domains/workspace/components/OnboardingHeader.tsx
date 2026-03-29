@@ -1,19 +1,20 @@
 "use client";
 
-import { UserButton, useClerk } from "@clerk/nextjs";
+import { UserButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useAuth } from "@/lib/auth/use-auth";
 import { Button, Space } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
 
 export function OnboardingHeader() {
-  const { signOut } = useClerk();
+  const { signOut } = useAuth();
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations("auth");
 
   const handleLogout = () => {
-    signOut({ redirectUrl: `/${locale}` });
+    void signOut({ redirectUrl: `/${locale}` });
     router.push(`/${locale}`);
   };
 

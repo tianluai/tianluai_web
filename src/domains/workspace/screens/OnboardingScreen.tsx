@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocale } from "next-intl";
 import { PageLayout } from "@/components/ui";
-import { getOnboardingDataAction } from "../actions";
+import { useSyncUser, useWorkspaces } from "../workspace.queries";
 import { OnboardingClient } from "../components/OnboardingClient";
 
 export function OnboardingScreen() {
@@ -12,20 +12,21 @@ export function OnboardingScreen() {
   const locale = useLocale();
   const searchParams = useSearchParams();
   const createMode = searchParams.get("create") === "true";
-  const [apiError, setApiError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+
+  const sync = useSyncUser();
+  const workspaces = useWorkspaces({ enabled: sync.isSuccess });
 
   useEffect(() => {
-    getOnboardingDataAction().then(({ apiError: err, workspaces }) => {
-      setApiError(err);
-      setLoading(false);
-      if (createMode) return;
-      if (workspaces.length === 1) router.replace(`/${locale}/workspace/${workspaces[0].id}`);
-      if (workspaces.length > 1) router.replace(`/${locale}/workspaces`);
-    });
-  }, [router, createMode, locale]);
+    if (createMode || !workspaces.data) return;
+    if (workspaces.data.length === 1)
+      router.replace(`/${locale}/workspace/${workspaces.data[0].id}`);
+    if (workspaces.data.length > 1)
+      router.replace(`/${locale}/workspaces`);
+  }, [workspaces.data, createMode, router, locale]);
 
-  if (loading) return null;
+  if (sync.isLoading || workspaces.isLoading) return null;
+
+  const apiError = sync.error?.message ?? workspaces.error?.message ?? null;
 
   return (
     <PageLayout>
