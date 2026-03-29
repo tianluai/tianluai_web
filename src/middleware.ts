@@ -18,6 +18,10 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
   if (pathname.startsWith("/api")) {
     return NextResponse.next();
   }
+  // Clerk handshake on `/` must not be redirected by next-intl (`localePrefix: "always"` drops/breaks it).
+  if (req.nextUrl.searchParams.has("__clerk_handshake")) {
+    return NextResponse.next();
+  }
   if (!isPublicRoute(req)) {
     await auth.protect();
   }
