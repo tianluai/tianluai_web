@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      NEXT_PUBLIC_CLERK_FAPI: ${{ secrets.NEXT_PUBLIC_CLERK_FAPI }}
+      NEXT_PUBLIC_CLERK_PROXY_URL: ${{ secrets.NEXT_PUBLIC_CLERK_PROXY_URL }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -79,7 +79,7 @@ jobs:
     env:
       DOCR_REGISTRY: ${{ secrets.DOCR_REGISTRY }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      NEXT_PUBLIC_CLERK_FAPI: ${{ secrets.NEXT_PUBLIC_CLERK_FAPI }}
+      NEXT_PUBLIC_CLERK_PROXY_URL: ${{ secrets.NEXT_PUBLIC_CLERK_PROXY_URL }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -118,7 +118,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_CLERK_FAPI=${{ env.NEXT_PUBLIC_CLERK_FAPI }}
+            NEXT_PUBLIC_CLERK_PROXY_URL=${{ env.NEXT_PUBLIC_CLERK_PROXY_URL }}
             NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_SENTRY_DSN=${{ env.NEXT_PUBLIC_SENTRY_DSN }}
             SENTRY_ORG=${{ env.SENTRY_ORG }}
