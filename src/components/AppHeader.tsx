@@ -25,10 +25,16 @@ function useWorkspaceIdFromPath(): string | null {
 export function AppHeader() {
   const locale = useLocale();
   const t = useTranslations("workspaceSwitcher");
+  const tNav = useTranslations("nav");
   const workspaceId = useWorkspaceIdFromPath();
 
   return (
     <Flex align="center" justify="flex-end" gap="middle" style={{ width: "100%" }}>
+      <Link href={workspaceId ? `/workspace/${workspaceId}/documents` : "/documents"}>
+        <Button type="link" style={{ padding: 0 }}>
+          {tNav("documents")}
+        </Button>
+      </Link>
       {workspaceId ? (
         <WorkspaceSwitcher currentWorkspaceId={workspaceId} />
       ) : (

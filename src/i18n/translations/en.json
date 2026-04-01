@@ -41,5 +41,43 @@
   "workspaceSwitcher": {
     "allWorkspaces": "All workspaces",
     "createWorkspace": "Create workspace"
+  },
+  "nav": {
+    "documents": "Documents"
+  },
+  "documents": {
+    "signInPrompt": "Sign in to manage documents.",
+    "signIn": "Sign in",
+    "pageTitle": "Documents & Google Drive",
+    "pageLead": "You’re signed in. Connect Google Drive below so the assistant can answer from your files (read-only).",
+    "pageLeadForWorkspace": "You’re signed in. Connect Google Drive for workspace “{workspaceName}” so the assistant can use files for this workspace (read-only).",
+    "pickWorkspaceTitle": "Documents & Google Drive",
+    "pickWorkspaceLead": "Google Drive is linked per workspace. Choose a workspace to connect Drive or manage folders.",
+    "createWorkspaceFirst": "Create a workspace first.",
+    "cardTitle": "Google Drive",
+    "connectLead": "Link your Google account so the assistant can read your Drive files (read-only).",
+    "adminMustEnableDrive": "Your workspace admin needs to enable Google Drive first (one-time setup).",
+    "connectButton": "Connect Google Drive",
+    "chooseFoldersLead": "Choose up to {max} folders to index (we only read those, not your whole Drive).",
+    "selectedCount": "Selected: {current}/{max} folders",
+    "changeFolders": "Change folders",
+    "chooseFolders": "Choose folders",
+    "syncNow": "Sync now",
+    "connectFailedStart": "Could not start Google Drive connection.",
+    "folderLoadFailed": "Could not load folders.",
+    "saveSelectionFailed": "Failed to save selection.",
+    "syncFailedWithStatus": "Sync failed ({status}). Is Redis running?",
+    "noJobId": "No job ID returned. Check API logs.",
+    "indexing": "Indexing your documents…",
+    "doneNoFiles": "No indexable files found in your selected folders (we support Google Docs, Sheets, Slides, and text files).",
+    "doneWithCounts": "Done. Indexed {chunks} chunks from {files} file(s). You can ask questions in Chat.",
+    "syncFailedDetail": "Sync failed: {error}. Check API logs.",
+    "indexingSlow": "Indexing is taking longer than expected. Check Chat in a minute.",
+    "apiUnreachable": "Could not reach the API. Is it running?",
+    "modalTitle": "Select up to {max} folders",
+    "modalSave": "Save selection",
+    "modalCancel": "Cancel",
+    "modalHint": "Only these folders will be indexed. Subfolders are included.",
+    "noFoldersInRoot": "No folders found in Drive root."
   }
 }
