@@ -14,9 +14,9 @@ function get(obj: unknown, path: string): string | undefined {
 }
 
 export function useTranslations() {
-  const t = useCallback((key: string): string => {
+  const translate = useCallback((key: string): string => {
     const value = get(messages, key);
     return value ?? key;
   }, []);
-  return { t };
+  return { translate };
 }

@@ -2,32 +2,33 @@
 
 import { Layout } from "antd";
 import { usePathname } from "next/navigation";
-import { IntlProviderClient } from "@/components/IntlProviderClient";
 import { AppHeader } from "@/components/AppHeader";
-import { getMessagesForLocale } from "@/i18n/load-messages";
-import { routing } from "@/i18n/routing";
+import { AuthSessionBoundary } from "@/components/AuthSessionBoundary";
 
 const { Header, Content } = Layout;
 
+function isWorkspaceChatPath(pathname: string): boolean {
+  const parts = pathname.split("/").filter(Boolean);
+  if (parts.length < 3) return false;
+  const [segment, workspaceId, page] = parts;
+  return segment === "workspace" && Boolean(workspaceId) && page === "chat";
+}
+
 /**
- * Client-only locale layout: reads locale from URL, provides i18n, and a global navbar.
+ * App chrome (header + content). i18n is provided by RootIntlClient in the route `app/[locale]/layout.tsx` (project root).
  */
-export function LocaleLayoutClient({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function LocaleLayoutClient({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const segment = pathname.split("/").filter(Boolean)[0];
-  const locale =
-    segment && routing.locales.includes(segment as "en" | "es")
-      ? segment
-      : routing.defaultLocale;
-  const messages = getMessagesForLocale(locale);
+  const chatFullBleed = isWorkspaceChatPath(pathname);
 
   return (
-    <IntlProviderClient locale={locale} messages={messages}>
-      <Layout style={{ minHeight: "100vh", background: "#fff" }}>
+    <Layout
+      style={{
+        minHeight: "100vh",
+        background: "#fff",
+      }}
+    >
+      {!chatFullBleed && (
         <Header
           style={{
             display: "flex",
@@ -40,8 +41,17 @@ export function LocaleLayoutClient({
         >
           <AppHeader />
         </Header>
-        <Content style={{ flex: 1 }}>{children}</Content>
-      </Layout>
-    </IntlProviderClient>
+      )}
+      <Content
+        style={{
+          flex: 1,
+          display: chatFullBleed ? "flex" : undefined,
+          flexDirection: chatFullBleed ? "column" : undefined,
+          overflow: chatFullBleed ? "hidden" : undefined,
+        }}
+      >
+        <AuthSessionBoundary>{children}</AuthSessionBoundary>
+      </Content>
+    </Layout>
   );
 }

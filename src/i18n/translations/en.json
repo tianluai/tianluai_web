@@ -19,7 +19,39 @@
       "back": "Back to workspaces"
     },
     "detail": {
-      "contentPlaceholder": "Your workspace. Content goes here."
+      "contentPlaceholder": "Your workspace. Content goes here.",
+      "openChat": "Open chat"
+    },
+    "chat": {
+      "brand": "Tianlu",
+      "emptyGreeting": "What’s on your mind today?",
+      "recents": "Recents",
+      "collapseSidebarAria": "Close sidebar",
+      "title": "Workspace chat",
+      "subtitle": "Ask questions, plan work, and keep notes for “{workspaceName}”.",
+      "threads": "Threads",
+      "threadsAria": "Open threads",
+      "closeThreadsAria": "Close threads",
+      "close": "Close",
+      "welcome": "Hi! I’m your workspace assistant for “{workspaceName}”. What do you want to work on?",
+      "emptyLead": "Try one of these to get started:",
+      "suggestionSummarize": "Summarize the current workspace goal",
+      "suggestionNextSteps": "Propose next steps for this workspace",
+      "suggestionQuestions": "What questions should we answer before we start?",
+      "composerPlaceholder": "Message the workspace assistant…",
+      "threadUntitled": "New chat",
+      "threadHint": "This chat is saved to your workspace in this browser.",
+      "newChat": "New chat",
+      "newChatAria": "Create new chat",
+      "searchPlaceholder": "Search chats",
+      "searchAria": "Search chats",
+      "noChats": "No chats yet.",
+      "deleteThreadAria": "Delete chat: {title}",
+      "send": "Send",
+      "sendAria": "Send message",
+      "suggestionAria": "Use suggestion: {text}",
+      "assistantAck": "Got it. Tell me a bit more about what you want to achieve in this workspace.",
+      "assistantAckWithContext": "Thanks — I can help. What outcome do you want, and what’s the current status?"
     }
   },
   "auth": {
@@ -43,6 +75,7 @@
     "createWorkspace": "Create workspace"
   },
   "nav": {
+    "chat": "Chat",
     "documents": "Documents"
   },
   "documents": {
@@ -64,6 +97,13 @@
     "chooseFolders": "Choose folders",
     "syncNow": "Sync now",
     "connectFailedStart": "Could not start Google Drive connection.",
+    "oauthErrorMissingParams": "Google sign-in did not return all required parameters. Close this tab and try connecting again.",
+    "oauthErrorStateInvalid": "The connection request expired or was invalid. Go back and try connecting Google Drive again.",
+    "oauthErrorDriveNotConfigured": "Google Drive is not configured on the server. Ask your admin to set the Google OAuth credentials.",
+    "oauthErrorNoRefreshToken": "Google did not return a refresh token. Try again and ensure you grant all requested permissions.",
+    "oauthErrorTokenExchangeFailed": "Could not complete Google sign-in. Try again in a moment.",
+    "oauthErrorUnknown": "Could not connect Google Drive. Try again.",
+    "connectCallbackFailedLegacy": "Could not connect Google Drive.",
     "folderLoadFailed": "Could not load folders.",
     "saveSelectionFailed": "Failed to save selection.",
     "syncFailedWithStatus": "Sync failed ({status}). Is Redis running?",

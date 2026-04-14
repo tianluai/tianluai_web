@@ -1,11 +1,4 @@
-import { getApiUrl } from "@/lib/config";
-
-function authHeaders(token: string | null): HeadersInit {
-  return {
-    "Content-Type": "application/json",
-    Authorization: token ? `Bearer ${token}` : "",
-  };
-}
+import { safeApiFetch, safeResponseJson } from "@/lib/api/http";
 
 export type DriveConnectionStatus = {
   connected: boolean;
@@ -13,115 +6,116 @@ export type DriveConnectionStatus = {
   selectedFolderIds: string[];
 };
 
-/**
- * GET /drive/status — whether Drive is connected for this user + workspace.
- */
-export async function fetchDriveStatus(
-  token: string | null,
-  userId: string,
-  workspaceId: string,
-): Promise<{ ok: true; data: DriveConnectionStatus } | { ok: false }> {
-  const apiUrl = getApiUrl();
-  if (!apiUrl) return { ok: false };
-
-  const url = `${apiUrl}/drive/status?userId=${encodeURIComponent(userId)}&workspaceId=${encodeURIComponent(workspaceId)}`;
-  const res = await fetch(url, {
-    headers: { Authorization: token ? `Bearer ${token}` : "" },
-    credentials: "include",
-  });
-  if (!res.ok) return { ok: false };
-
-  const data: unknown = await res.json();
-  const o = data as Record<string, unknown>;
-  return {
-    ok: true,
-    data: {
-      connected: !!o.connected,
-      driveConfigured: !!o.driveConfigured,
-      selectedFolderIds: Array.isArray(o.selectedFolderIds) ? (o.selectedFolderIds as string[]) : [],
-    },
-  };
-}
-
 export type DriveAuthResponse = {
   authUrl?: string;
   error?: string;
 };
 
-/**
- * POST /drive/auth — returns Google OAuth URL or error.
- */
-export async function fetchDriveAuthUrl(
-  token: string | null,
-  body: { returnUrl: string; userId: string; workspaceId: string },
-): Promise<DriveAuthResponse> {
-  const apiUrl = getApiUrl();
-  if (!apiUrl) return { error: "API not configured" };
-
-  const res = await fetch(`${apiUrl}/drive/auth`, {
-    method: "POST",
-    headers: authHeaders(token),
-    body: JSON.stringify(body),
-    credentials: "include",
-  });
-  return (await res.json().catch(() => ({}))) as DriveAuthResponse;
-}
-
 export type DriveFolder = { id: string; name: string };
 
 /**
- * GET /drive/folders — list folders under parent (default root).
+ * Google Drive REST calls for the documents domain.
+ * HTTP concerns (headers, fetch, network errors) live in `@/lib/api/http`.
  */
-export async function fetchDriveFolders(
-  token: string | null,
-  userId: string,
-  workspaceId: string,
-  parentId: string = "root",
-): Promise<
-  | { ok: true; folders: DriveFolder[]; driveError: string | null }
-  | { ok: false; apiError?: string }
-> {
-  const apiUrl = getApiUrl();
-  if (!apiUrl) return { ok: false, apiError: "API not configured" };
+export const driveService = {
+  /**
+   * GET /drive/status — whether Drive is connected for this user + workspace.
+   * User identity comes from the Bearer token (Clerk); only `workspaceId` is passed.
+   */
+  async getStatus(
+    token: string | null,
+    workspaceId: string,
+  ): Promise<{ ok: true; data: DriveConnectionStatus } | { ok: false }> {
+    const query = new URLSearchParams({ workspaceId }).toString();
+    const fetched = await safeApiFetch(`/drive/status?${query}`, { token });
+    if (!fetched.ok) return { ok: false };
 
-  const url = `${apiUrl}/drive/folders?userId=${encodeURIComponent(userId)}&workspaceId=${encodeURIComponent(workspaceId)}&parentId=${encodeURIComponent(parentId)}`;
-  const res = await fetch(url, {
-    headers: { Authorization: token ? `Bearer ${token}` : "" },
-    credentials: "include",
-  });
-  const data = (await res.json().catch(() => ({}))) as {
-    folders?: DriveFolder[];
-    error?: string;
-  };
+    const { response } = fetched;
+    if (!response.ok) return { ok: false };
 
-  if (res.ok && Array.isArray(data.folders)) {
+    const raw = await safeResponseJson<Record<string, unknown>>(response);
+    if (raw == null) return { ok: false };
+
     return {
       ok: true,
-      folders: data.folders,
-      driveError: data.error ?? null,
+      data: {
+        connected: !!raw.connected,
+        driveConfigured: !!raw.driveConfigured,
+        selectedFolderIds: Array.isArray(raw.selectedFolderIds) ? (raw.selectedFolderIds as string[]) : [],
+      },
     };
-  }
-  return {
-    ok: false,
-    apiError: typeof data.error === "string" ? data.error : undefined,
-  };
-}
+  },
 
-/**
- * POST /drive/folders — persist selected folder ids.
- */
-export async function saveDriveFolderSelection(
-  token: string | null,
-  body: { userId: string; workspaceId: string; folderIds: string[] },
-): Promise<{ ok: boolean; error?: string }> {
-  const apiUrl = getApiUrl();
-  if (!apiUrl) return { ok: false, error: "API not configured" };
+  /**
+   * POST /drive/auth — returns Google OAuth URL or error.
+   */
+  async getAuthUrl(
+    token: string | null,
+    body: { returnUrl: string; workspaceId: string },
+  ): Promise<DriveAuthResponse> {
+    const fetched = await safeApiFetch("/drive/auth", {
+      method: "POST",
+      token,
+      body: JSON.stringify(body),
+    });
+    if (!fetched.ok) {
+      return {
+        error: fetched.error === "no_api_url" ? "API not configured" : undefined,
+      };
+    }
+    return (await safeResponseJson<DriveAuthResponse>(fetched.response)) ?? {};
+  },
 
-  const res = await fetch(`${apiUrl}/drive/folders`, {
-    method: "POST",
-    headers: authHeaders(token),
-    body: JSON.stringify(body),
-    credentials: "include",
-  });
-  return (await res.json().catch(() => ({}))) as { ok: boolean; error?: string };
-}
+  /**
+   * GET /drive/folders — list folders under parent (default root).
+   * Never throws: failures become `{ ok: false }`.
+   */
+  async getFolders(
+    token: string | null,
+    workspaceId: string,
+    parentId: string = "root",
+  ): Promise<
+    | { ok: true; folders: DriveFolder[]; driveError: string | null }
+    | { ok: false; apiError?: string }
+  > {
+    const query = new URLSearchParams({ workspaceId, parentId }).toString();
+    const fetched = await safeApiFetch(`/drive/folders?${query}`, { token });
+    if (!fetched.ok) return { ok: false };
+
+    const { response } = fetched;
+    const data =
+      (await safeResponseJson<{ folders?: DriveFolder[]; error?: string }>(response)) ?? {};
+
+    if (response.ok && Array.isArray(data.folders)) {
+      return {
+        ok: true,
+        folders: data.folders,
+        driveError: data.error ?? null,
+      };
+    }
+    return {
+      ok: false,
+      apiError: typeof data.error === "string" ? data.error : undefined,
+    };
+  },
+
+  /**
+   * POST /drive/folders — persist selected folder ids.
+   * Never throws: failures become `{ ok: false }`.
+   */
+  async saveFolderSelection(
+    token: string | null,
+    body: { workspaceId: string; folderIds: string[] },
+  ): Promise<{ ok: boolean; error?: string }> {
+    const fetched = await safeApiFetch("/drive/folders", {
+      method: "POST",
+      token,
+      body: JSON.stringify(body),
+    });
+    if (!fetched.ok) return { ok: false };
+
+    return (await safeResponseJson<{ ok: boolean; error?: string }>(fetched.response)) ?? {
+      ok: false,
+    };
+  },
+};

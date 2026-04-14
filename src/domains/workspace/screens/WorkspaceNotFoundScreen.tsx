@@ -6,14 +6,14 @@ import { ScreenLayout, Text, Title } from "@/components/ui";
 import { useTranslations } from "next-intl";
 
 export function WorkspaceNotFoundScreen() {
-  const t = useTranslations("workspace.notFound");
+  const translate = useTranslations("workspace.notFound");
   return (
     <ScreenLayout centered>
       <Space direction="vertical" align="center" size="middle">
-        <Title level={1}>{t("title")}</Title>
-        <Text type="secondary">{t("description")}</Text>
+        <Title level={1}>{translate("title")}</Title>
+        <Text type="secondary">{translate("description")}</Text>
         <Link href="/workspaces">
-          <Button type="primary">{t("back")}</Button>
+          <Button type="primary">{translate("back")}</Button>
         </Link>
       </Space>
     </ScreenLayout>

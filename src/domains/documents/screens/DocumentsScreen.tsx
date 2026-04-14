@@ -1,8 +1,15 @@
 "use client";
 
+/**
+ * Workspace “Google Drive” settings UI for `/workspace/[workspaceId]/documents`.
+ *
+ * - The **Next.js page** is `workspace-documents.page.tsx` (and `app/.../documents/page.tsx`), which only passes `workspaceId`.
+ * - **`DocumentsScreen`** is what the page renders — the public domain entry for this route.
+ * - **`DocumentsScreenBody`** uses hooks that read the URL; in the App Router they must live under `<Suspense>`, so the body is wrapped by `DocumentsScreen`.
+ */
+
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import {
   Alert,
   Button,
@@ -15,41 +22,36 @@ import {
   Typography,
 } from "antd";
 import { GoogleOutlined } from "@ant-design/icons";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageLayout } from "@/components/ui";
 import { useWorkspaces } from "@/domains/workspace/workspace.queries";
 import {
-  fetchDriveAuthUrl,
-  fetchDriveFolders,
-  fetchDriveStatus,
-  saveDriveFolderSelection,
+  driveService,
   type DriveFolder,
 } from "@/domains/documents/services/drive-api";
+import {
+  useDriveConnectionStatus,
+  useInvalidateDriveConnectionStatus,
+} from "@/domains/documents/drive.queries";
+import { useDriveOAuthUrlAlertMessage } from "@/domains/documents/hooks/use-drive-oauth-url-alert";
 
 const MAX_FOLDERS = 3;
-
-type Status = {
-  connected: boolean;
-  driveConfigured: boolean;
-  selectedFolderIds: string[];
-} | null;
 
 type DocumentsScreenProps = {
   workspaceId: string;
 };
 
-function DocumentsContent({ workspaceId }: DocumentsScreenProps) {
+function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
   const { getToken, isSignedIn, isLoaded } = useAuth();
   const { user } = useUser();
   const userId = user?.id ?? "";
-  const searchParams = useSearchParams();
-  const locale = useLocale();
-  const t = useTranslations("documents");
+  const translate = useTranslations("documents");
+  const oauthUrlAlert = useDriveOAuthUrlAlertMessage();
   const { data: workspaces = [] } = useWorkspaces();
-  const workspaceName = workspaces.find((w) => w.id === workspaceId)?.name ?? workspaceId;
+  const workspaceName =
+    workspaces.find((workspaceItem) => workspaceItem.id === workspaceId)?.name ?? workspaceId;
 
-  const [status, setStatus] = useState<Status>(null);
   const [connectError, setConnectError] = useState<string | null>(null);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
   const [folders, setFolders] = useState<DriveFolder[]>([]);
@@ -58,28 +60,14 @@ function DocumentsContent({ workspaceId }: DocumentsScreenProps) {
   const [savingFolders, setSavingFolders] = useState(false);
   const [folderError, setFolderError] = useState<string | null>(null);
 
-  const fetchStatus = useCallback(async () => {
-    if (!userId || !workspaceId) return;
-    const token = await getToken({ skipCache: true });
-    const result = await fetchDriveStatus(token, userId, workspaceId);
-    if (!result.ok) {
-      setStatus({ connected: false, driveConfigured: false, selectedFolderIds: [] });
-      return;
-    }
-    setStatus(result.data);
-  }, [getToken, userId, workspaceId]);
-
-  useEffect(() => {
-    if (!isLoaded || !isSignedIn || !userId || !workspaceId) return;
-    void fetchStatus();
-  }, [isLoaded, isSignedIn, userId, workspaceId, fetchStatus]);
-
-  useEffect(() => {
-    const error = searchParams.get("error");
-    const connected = searchParams.get("connected");
-    if (error) setConnectError(decodeURIComponent(error));
-    if (connected) setConnectError(null);
-  }, [searchParams]);
+  const statusQueryEnabled =
+    isLoaded && isSignedIn && !!userId && !!workspaceId;
+  const statusQuery = useDriveConnectionStatus(workspaceId, statusQueryEnabled);
+  const invalidateDriveStatus = useInvalidateDriveConnectionStatus();
+  const status = statusQuery.data;
+  const driveStatusLoading =
+    (isSignedIn && isLoaded && !userId) ||
+    (statusQueryEnabled && statusQuery.isPending);
 
   const handleConnectDrive = async () => {
     if (!userId || !workspaceId) return;
@@ -87,17 +75,17 @@ function DocumentsContent({ workspaceId }: DocumentsScreenProps) {
     const token = await getToken({ skipCache: true });
     const returnUrl =
       typeof window !== "undefined"
-        ? `${window.location.origin}/${locale}/workspace/${workspaceId}/documents?connected=1`
+        ? `${window.location.origin}/workspace/${workspaceId}/documents?connected=1`
         : "";
-    const data = await fetchDriveAuthUrl(token, { returnUrl, userId, workspaceId });
+    const data = await driveService.getAuthUrl(token, { returnUrl, workspaceId });
     if (data.authUrl) {
       window.location.href = data.authUrl;
       return;
     }
-    setConnectError(data.error || t("connectFailedStart"));
+    setConnectError(data.error || translate("connectFailedStart"));
   };
 
-  const openFolderPicker = useCallback(async () => {
+  async function openFolderPicker() {
     if (!userId || !workspaceId) return;
     setFolderPickerOpen(true);
     setFolderError(null);
@@ -105,20 +93,15 @@ function DocumentsContent({ workspaceId }: DocumentsScreenProps) {
     setFolderPickerLoading(true);
     setFolders([]);
     const token = await getToken({ skipCache: true });
-    try {
-      const result = await fetchDriveFolders(token, userId, workspaceId, "root");
-      if (result.ok) {
-        setFolders(result.folders);
-        setFolderError(result.driveError ?? null);
-        return;
-      }
-      setFolderError(result.apiError || t("folderLoadFailed"));
-    } catch {
-      setFolderError(t("folderLoadFailed"));
-    } finally {
-      setFolderPickerLoading(false);
+    const result = await driveService.getFolders(token, workspaceId, "root");
+    setFolderPickerLoading(false);
+    if (result.ok) {
+      setFolders(result.folders);
+      setFolderError(result.driveError ?? null);
+      return;
     }
-  }, [getToken, status?.selectedFolderIds, t, userId, workspaceId]);
+    setFolderError(result.apiError || translate("folderLoadFailed"));
+  }
 
   const toggleFolderSelection = (id: string) => {
     setPickerSelectedIds((prev) => {
@@ -137,82 +120,84 @@ function DocumentsContent({ workspaceId }: DocumentsScreenProps) {
     if (!userId || !workspaceId) return;
     setSavingFolders(true);
     setFolderError(null);
-    try {
-      const token = await getToken({ skipCache: true });
-      const data = await saveDriveFolderSelection(token, {
-        userId,
-        workspaceId,
-        folderIds: Array.from(pickerSelectedIds),
-      });
-      if (data.ok) {
-        setFolderPickerOpen(false);
-        void fetchStatus();
-        return;
-      }
-      setFolderError(data.error || t("saveSelectionFailed"));
-    } catch {
-      setFolderError(t("saveSelectionFailed"));
-    } finally {
-      setSavingFolders(false);
+    const token = await getToken({ skipCache: true });
+    const data = await driveService.saveFolderSelection(token, {
+      workspaceId,
+      folderIds: Array.from(pickerSelectedIds),
+    });
+    setSavingFolders(false);
+    if (data.ok) {
+      setFolderPickerOpen(false);
+      invalidateDriveStatus(workspaceId);
+      return;
     }
+    setFolderError(data.error || translate("saveSelectionFailed"));
   };
 
   if (isLoaded && !isSignedIn) {
     return (
       <Layout className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <Space direction="vertical" align="center">
-          <Typography.Text type="secondary">{t("signInPrompt")}</Typography.Text>
+          <Typography.Text type="secondary">{translate("signInPrompt")}</Typography.Text>
           <Link href="/sign-in">
-            <Button type="primary">{t("signIn")}</Button>
+            <Button type="primary">{translate("signIn")}</Button>
           </Link>
         </Space>
       </Layout>
     );
   }
 
+  const isFolderPickerFetching = folderPickerLoading;
+  const isFolderPickerErrorVisible = Boolean(folderError);
+  const isFolderPickerEmptyVisible =
+    !isFolderPickerFetching && !isFolderPickerErrorVisible && folders.length === 0;
+  const isFolderPickerListVisible =
+    !isFolderPickerFetching && folders.length > 0;
+  const connectAlertMessage = connectError ?? oauthUrlAlert;
+
   return (
     <PageLayout centered={false}>
-      <Typography.Title level={4}>{t("pageTitle")}</Typography.Title>
+      <Typography.Title level={4}>{translate("pageTitle")}</Typography.Title>
       <Typography.Paragraph type="secondary" className="mt-1">
-        {t("pageLeadForWorkspace", { workspaceName })}
+        {translate("pageLeadForWorkspace", { workspaceName })}
       </Typography.Paragraph>
 
-      {connectError && (
-        <Alert type="error" message={connectError} className="mt-4" showIcon />
+      {connectAlertMessage && (
+        <Alert type="error" message={connectAlertMessage} className="mt-4" showIcon />
       )}
 
-      <Card title={t("cardTitle")} className="mt-6">
-        {status === null && <Spin />}
-        {status !== null && !status.connected && (
+      <Card title={translate("cardTitle")} className="mt-6">
+        {driveStatusLoading && <Spin />}
+        {!driveStatusLoading && status && !status.connected && (
           <>
-            <Typography.Paragraph type="secondary">{t("connectLead")}</Typography.Paragraph>
+            <Typography.Paragraph type="secondary">{translate("connectLead")}</Typography.Paragraph>
             {!status.driveConfigured && (
               <Alert
                 type="warning"
-                message={t("adminMustEnableDrive")}
+                message={translate("adminMustEnableDrive")}
                 className="mb-4"
                 showIcon
               />
             )}
             <Button type="primary" icon={<GoogleOutlined />} onClick={handleConnectDrive}>
-              {t("connectButton")}
+              {translate("connectButton")}
             </Button>
           </>
         )}
-        {status !== null && status.connected && (
+        {!driveStatusLoading && status && status.connected && (
           <>
             <Typography.Paragraph type="secondary">
-              {t("chooseFoldersLead", { max: MAX_FOLDERS })}
+              {translate("chooseFoldersLead", { max: MAX_FOLDERS })}
             </Typography.Paragraph>
             <Space className="mt-4" wrap>
               <Typography.Text>
-                {t("selectedCount", {
+                {translate("selectedCount", {
                   current: status.selectedFolderIds.length,
                   max: MAX_FOLDERS,
                 })}
               </Typography.Text>
               <Button onClick={openFolderPicker}>
-                {status.selectedFolderIds.length ? t("changeFolders") : t("chooseFolders")}
+                {status.selectedFolderIds.length ? translate("changeFolders") : translate("chooseFolders")}
               </Button>
             </Space>
           </>
@@ -220,31 +205,33 @@ function DocumentsContent({ workspaceId }: DocumentsScreenProps) {
       </Card>
 
       <Modal
-        title={t("modalTitle", { max: MAX_FOLDERS })}
+        title={translate("modalTitle", { max: MAX_FOLDERS })}
         open={folderPickerOpen}
         onCancel={() => !folderPickerLoading && !savingFolders && setFolderPickerOpen(false)}
         onOk={saveFolderSelection}
-        okText={t("modalSave")}
-        cancelText={t("modalCancel")}
+        okText={translate("modalSave")}
+        cancelText={translate("modalCancel")}
         confirmLoading={savingFolders}
         okButtonProps={{ disabled: folderPickerLoading }}
       >
-        <Typography.Paragraph type="secondary">{t("modalHint")}</Typography.Paragraph>
-        {folderError && <Alert type="error" message={folderError} className="mb-4" showIcon />}
-        {folderPickerLoading && <Spin />}
-        {!folderPickerLoading && folders.length === 0 && !folderError && (
-          <Typography.Text type="secondary">{t("noFoldersInRoot")}</Typography.Text>
+        <Typography.Paragraph type="secondary">{translate("modalHint")}</Typography.Paragraph>
+        {isFolderPickerErrorVisible && (
+          <Alert type="error" message={folderError} className="mb-4" showIcon />
         )}
-        {!folderPickerLoading && folders.length > 0 && (
+        {isFolderPickerFetching && <Spin />}
+        {isFolderPickerEmptyVisible && (
+          <Typography.Text type="secondary">{translate("noFoldersInRoot")}</Typography.Text>
+        )}
+        {isFolderPickerListVisible && (
           <Space direction="vertical" className="w-full">
-            {folders.map((f) => (
+            {folders.map((folder) => (
               <Checkbox
-                key={f.id}
-                checked={pickerSelectedIds.has(f.id)}
-                onChange={() => toggleFolderSelection(f.id)}
-                disabled={!pickerSelectedIds.has(f.id) && pickerSelectedIds.size >= MAX_FOLDERS}
+                key={folder.id}
+                checked={pickerSelectedIds.has(folder.id)}
+                onChange={() => toggleFolderSelection(folder.id)}
+                disabled={!pickerSelectedIds.has(folder.id) && pickerSelectedIds.size >= MAX_FOLDERS}
               >
-                {f.name}
+                {folder.name}
               </Checkbox>
             ))}
           </Space>
@@ -263,7 +250,7 @@ export function DocumentsScreen(props: DocumentsScreenProps) {
         </PageLayout>
       }
     >
-      <DocumentsContent {...props} />
+      <DocumentsScreenBody {...props} />
     </Suspense>
   );
 }
