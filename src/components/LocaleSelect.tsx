@@ -2,7 +2,8 @@
 
 import { useLocale } from "next-intl";
 import { Select } from "@/components/ui";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { useLocaleSwitcher } from "@/components/RootIntlClient";
+import { routing } from "@/i18n/routing";
 
 const localeOptions = [
   { value: "en", label: "en" },
@@ -11,12 +12,12 @@ const localeOptions = [
 
 export function LocaleSelect() {
   const locale = useLocale();
-  const router = useRouter();
-  const pathname = usePathname();
+  const { setLocale } = useLocaleSwitcher();
 
   const handleChange = (value: unknown) => {
-    const next = typeof value === "string" ? value : String(value ?? "en");
-    router.replace(pathname, { locale: next as "en" | "es" });
+    const next = typeof value === "string" ? value : String(value ?? routing.defaultLocale);
+    const resolved = routing.locales.includes(next as "en" | "es") ? next : routing.defaultLocale;
+    setLocale(resolved);
   };
 
   return (

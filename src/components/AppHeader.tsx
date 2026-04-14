@@ -2,39 +2,41 @@
 
 import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Flex } from "antd";
 import { Button } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { Link } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
 
 function useWorkspaceIdFromPath(): string | null {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
-  const localeIndex = segments.findIndex((s) =>
-    routing.locales.includes(s as "en" | "es")
-  );
-  if (localeIndex === -1) return null;
-  const afterLocale = segments.slice(localeIndex + 1);
-  if (afterLocale[0] === "workspace" && afterLocale[1]) return afterLocale[1];
+  if (segments[0] === "workspace" && segments[1]) return segments[1];
   return null;
 }
 
 export function AppHeader() {
-  const locale = useLocale();
-  const t = useTranslations("workspaceSwitcher");
-  const tNav = useTranslations("nav");
+  const translateWorkspaceSwitcher = useTranslations("workspaceSwitcher");
+  const translateNav = useTranslations("nav");
   const workspaceId = useWorkspaceIdFromPath();
 
   return (
     <Flex align="center" justify="flex-end" gap="middle" style={{ width: "100%" }}>
-      <Link href={workspaceId ? `/workspace/${workspaceId}/documents` : "/documents"}>
-        <Button type="link" style={{ padding: 0 }}>
-          {tNav("documents")}
-        </Button>
-      </Link>
+      {workspaceId && (
+        <Link href={`/workspace/${workspaceId}/chat`}>
+          <Button type="link" style={{ padding: 0 }}>
+            {translateNav("chat")}
+          </Button>
+        </Link>
+      )}
+      {workspaceId && (
+        <Link href={`/workspace/${workspaceId}/documents`}>
+          <Button type="link" style={{ padding: 0 }}>
+            {translateNav("documents")}
+          </Button>
+        </Link>
+      )}
       {workspaceId ? (
         <WorkspaceSwitcher currentWorkspaceId={workspaceId} />
       ) : (
@@ -42,16 +44,16 @@ export function AppHeader() {
           <LocaleSelect />
           <Link href="/workspaces">
             <Button type="link" style={{ padding: 0 }}>
-              {t("allWorkspaces")}
+              {translateWorkspaceSwitcher("allWorkspaces")}
             </Button>
           </Link>
           <Link href="/onboarding?create=true">
             <Button type="link" style={{ padding: 0 }}>
-              {t("createWorkspace")}
+              {translateWorkspaceSwitcher("createWorkspace")}
             </Button>
           </Link>
           <UserButton
-            afterSignOutUrl={`/${locale}`}
+            afterSignOutUrl="/"
             appearance={{
               elements: { avatarBox: "h-8 w-8" },
             }}

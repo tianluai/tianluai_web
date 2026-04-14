@@ -3,5 +3,6 @@ import { defineRouting } from "next-intl/routing";
 export const routing = defineRouting({
   locales: ["en", "es"],
   defaultLocale: "en",
-  localePrefix: "always",
+  /** Locale from cookie / Accept-Language — not part of the URL. */
+  localePrefix: "never",
 });
