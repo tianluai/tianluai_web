@@ -11,12 +11,12 @@ type WorkspaceSelectProps = {
 };
 
 export function WorkspaceSelect({ workspaces }: WorkspaceSelectProps) {
-  const t = useTranslations("workspace.picker");
+  const translate = useTranslations("workspace.picker");
   const router = useRouter();
 
   return (
     <Space direction="vertical" size="large" style={{ width: "100%", maxWidth: 720 }}>
-      <Title level={2}>{t("title")}</Title>
+      <Title level={2}>{translate("title")}</Title>
       <Flex gap="middle" wrap="wrap">
         {workspaces.map((workspace) => {
           const label =

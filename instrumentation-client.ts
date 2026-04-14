@@ -1,3 +1,5 @@
+// Must run before any antd import on the client (React 19). Root layout also imports this patch.
+import "@ant-design/v5-patch-for-react-19";
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({

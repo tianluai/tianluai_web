@@ -2,14 +2,12 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { useLocale } from "next-intl";
 import { PageLayout } from "@/components/ui";
 import { useSyncUser, useWorkspaces } from "../workspace.queries";
 import { OnboardingClient } from "../components/OnboardingClient";
 
 export function OnboardingScreen() {
   const router = useRouter();
-  const locale = useLocale();
   const searchParams = useSearchParams();
   const createMode = searchParams.get("create") === "true";
 
@@ -19,10 +17,9 @@ export function OnboardingScreen() {
   useEffect(() => {
     if (createMode || !workspaces.data) return;
     if (workspaces.data.length === 1)
-      router.replace(`/${locale}/workspace/${workspaces.data[0].id}`);
-    if (workspaces.data.length > 1)
-      router.replace(`/${locale}/workspaces`);
-  }, [workspaces.data, createMode, router, locale]);
+      router.replace(`/workspace/${workspaces.data[0].id}`);
+    if (workspaces.data.length > 1) router.replace("/workspaces");
+  }, [workspaces.data, createMode, router]);
 
   if (sync.isLoading || workspaces.isLoading) return null;
 

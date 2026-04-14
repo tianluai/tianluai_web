@@ -19,7 +19,39 @@
       "back": "Volver a espacios"
     },
     "detail": {
-      "contentPlaceholder": "Tu espacio. El contenido irá aquí."
+      "contentPlaceholder": "Tu espacio. El contenido irá aquí.",
+      "openChat": "Abrir chat"
+    },
+    "chat": {
+      "brand": "Tianlu",
+      "emptyGreeting": "¿En qué estás pensando hoy?",
+      "recents": "Recientes",
+      "collapseSidebarAria": "Cerrar barra lateral",
+      "title": "Chat del espacio",
+      "subtitle": "Haz preguntas, planifica trabajo y guarda notas para «{workspaceName}».",
+      "threads": "Hilos",
+      "threadsAria": "Abrir hilos",
+      "closeThreadsAria": "Cerrar hilos",
+      "close": "Cerrar",
+      "welcome": "¡Hola! Soy tu asistente del espacio «{workspaceName}». ¿En qué quieres trabajar?",
+      "emptyLead": "Prueba una de estas opciones para empezar:",
+      "suggestionSummarize": "Resume el objetivo actual del espacio",
+      "suggestionNextSteps": "Propón próximos pasos para este espacio",
+      "suggestionQuestions": "¿Qué preguntas debemos responder antes de empezar?",
+      "composerPlaceholder": "Escribe al asistente del espacio…",
+      "threadUntitled": "Nuevo chat",
+      "threadHint": "Este chat se guarda para tu espacio en este navegador.",
+      "newChat": "Nuevo chat",
+      "newChatAria": "Crear nuevo chat",
+      "searchPlaceholder": "Buscar chats",
+      "searchAria": "Buscar chats",
+      "noChats": "Aún no hay chats.",
+      "deleteThreadAria": "Eliminar chat: {title}",
+      "send": "Enviar",
+      "sendAria": "Enviar mensaje",
+      "suggestionAria": "Usar sugerencia: {text}",
+      "assistantAck": "Entendido. Cuéntame un poco más sobre lo que quieres lograr en este espacio.",
+      "assistantAckWithContext": "Gracias — puedo ayudarte. ¿Qué resultado buscas y cuál es el estado actual?"
     }
   },
   "auth": {
@@ -41,5 +73,51 @@
   "workspaceSwitcher": {
     "allWorkspaces": "Todos los espacios",
     "createWorkspace": "Crear espacio"
+  },
+  "nav": {
+    "chat": "Chat",
+    "documents": "Documentos"
+  },
+  "documents": {
+    "signInPrompt": "Inicia sesión para gestionar documentos.",
+    "signIn": "Iniciar sesión",
+    "pageTitle": "Documentos y Google Drive",
+    "pageLead": "Has iniciado sesión. Conecta Google Drive abajo para que el asistente responda a partir de tus archivos (solo lectura).",
+    "pageLeadForWorkspace": "Has iniciado sesión. Conecta Google Drive para el espacio de trabajo «{workspaceName}» para que el asistente use archivos de ese espacio (solo lectura).",
+    "pickWorkspaceTitle": "Documentos y Google Drive",
+    "pickWorkspaceLead": "Google Drive se vincula por espacio de trabajo. Elige uno para conectar Drive o gestionar carpetas.",
+    "createWorkspaceFirst": "Crea primero un espacio de trabajo.",
+    "cardTitle": "Google Drive",
+    "connectLead": "Vincula tu cuenta de Google para que el asistente lea tus archivos de Drive (solo lectura).",
+    "adminMustEnableDrive": "El administrador del espacio debe habilitar Google Drive primero (configuración única).",
+    "connectButton": "Conectar Google Drive",
+    "chooseFoldersLead": "Elige hasta {max} carpetas para indexar (solo esas, no todo tu Drive).",
+    "selectedCount": "Seleccionadas: {current}/{max} carpetas",
+    "changeFolders": "Cambiar carpetas",
+    "chooseFolders": "Elegir carpetas",
+    "syncNow": "Sincronizar ahora",
+    "connectFailedStart": "No se pudo iniciar la conexión con Google Drive.",
+    "oauthErrorMissingParams": "El inicio de sesión de Google no devolvió todos los parámetros necesarios. Cierra esta pestaña e inténtalo de nuevo.",
+    "oauthErrorStateInvalid": "La solicitud de conexión caducó o no es válida. Vuelve atrás e intenta conectar Google Drive otra vez.",
+    "oauthErrorDriveNotConfigured": "Google Drive no está configurado en el servidor. Pide al administrador que configure las credenciales OAuth de Google.",
+    "oauthErrorNoRefreshToken": "Google no devolvió un token de actualización. Inténtalo de nuevo y acepta todos los permisos solicitados.",
+    "oauthErrorTokenExchangeFailed": "No se pudo completar el inicio de sesión con Google. Inténtalo de nuevo en unos momentos.",
+    "oauthErrorUnknown": "No se pudo conectar Google Drive. Inténtalo de nuevo.",
+    "connectCallbackFailedLegacy": "No se pudo conectar Google Drive.",
+    "folderLoadFailed": "No se pudieron cargar las carpetas.",
+    "saveSelectionFailed": "No se pudo guardar la selección.",
+    "syncFailedWithStatus": "Error de sincronización ({status}). ¿Está Redis en ejecución?",
+    "noJobId": "No se devolvió un ID de trabajo. Revisa los registros de la API.",
+    "indexing": "Indexando tus documentos…",
+    "doneNoFiles": "No se encontraron archivos indexables en las carpetas seleccionadas (admitimos Google Docs, Sheets, Slides y archivos de texto).",
+    "doneWithCounts": "Listo. Se indexaron {chunks} fragmentos de {files} archivo(s). Puedes preguntar en el chat.",
+    "syncFailedDetail": "Error de sincronización: {error}. Revisa los registros de la API.",
+    "indexingSlow": "La indexación está tardando más de lo esperado. Revisa el chat en un minuto.",
+    "apiUnreachable": "No se pudo contactar con la API. ¿Está en ejecución?",
+    "modalTitle": "Selecciona hasta {max} carpetas",
+    "modalSave": "Guardar selección",
+    "modalCancel": "Cancelar",
+    "modalHint": "Solo se indexarán estas carpetas. Se incluyen subcarpetas.",
+    "noFoldersInRoot": "No hay carpetas en la raíz de Drive."
   }
 }

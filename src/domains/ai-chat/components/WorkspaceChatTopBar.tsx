@@ -1,0 +1,67 @@
+"use client";
+
+import { UserButton } from "@clerk/nextjs";
+import { MenuOutlined } from "@ant-design/icons";
+import { Flex, theme } from "antd";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui";
+import { LocaleSelect } from "@/components/LocaleSelect";
+import { Link } from "@/i18n/navigation";
+import { WorkspacePickerDropdown } from "@/components/workspace-switcher";
+
+type WorkspaceChatTopBarProps = {
+  workspaceId: string;
+  onOpenSidebar: () => void;
+  showSidebarToggle: boolean;
+};
+
+export function WorkspaceChatTopBar({
+  workspaceId,
+  onOpenSidebar,
+  showSidebarToggle,
+}: WorkspaceChatTopBarProps) {
+  const translateNav = useTranslations("nav");
+  const translateWorkspaceChat = useTranslations("workspace.chat");
+  const { token } = theme.useToken();
+
+  return (
+    <Flex
+      align="center"
+      justify="space-between"
+      style={{
+        height: 52,
+        paddingInline: 16,
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        background: token.colorBgLayout,
+        flexShrink: 0,
+      }}
+    >
+      <Flex align="center" gap="small">
+        {showSidebarToggle && (
+          <Button
+            type="text"
+            icon={<MenuOutlined />}
+            onClick={onOpenSidebar}
+            aria-label={translateWorkspaceChat("threadsAria")}
+            style={{ color: token.colorText }}
+          />
+        )}
+        <WorkspacePickerDropdown currentWorkspaceId={workspaceId} />
+      </Flex>
+      <Flex align="center" gap="middle">
+        <Link href={`/workspace/${workspaceId}/documents`}>
+          <Button type="text" style={{ padding: 0, color: token.colorTextSecondary }}>
+            {translateNav("documents")}
+          </Button>
+        </Link>
+        <LocaleSelect />
+        <UserButton
+          afterSignOutUrl="/"
+          appearance={{
+            elements: { avatarBox: "h-8 w-8" },
+          }}
+        />
+      </Flex>
+    </Flex>
+  );
+}

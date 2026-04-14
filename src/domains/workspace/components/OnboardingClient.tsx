@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { message, Space } from "antd";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useCreateWorkspace } from "../workspace.queries";
 import {
   ApiErrorAlert,
@@ -17,8 +17,7 @@ import {
 type OnboardingClientProps = { apiError?: string | null };
 
 export function OnboardingClient({ apiError }: OnboardingClientProps) {
-  const t = useTranslations();
-  const locale = useLocale();
+  const translate = useTranslations();
   const router = useRouter();
   const [createName, setCreateName] = useState("");
   const create = useCreateWorkspace();
@@ -26,16 +25,16 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
   const handleCreate = async () => {
     const name = createName.trim();
     if (!name) {
-      message.warning(t("workspace.create.enterName"));
+      message.warning(translate("workspace.create.enterName"));
       return;
     }
 
     create.mutate(name, {
       onSuccess: (workspace) => {
-        router.push(`/${locale}/workspace/${workspace.id}`);
+        router.push(`/workspace/${workspace.id}`);
       },
-      onError: (err) => {
-        message.error(t(err.message));
+      onError: (error) => {
+        message.error(translate(error.message));
       },
     });
   };
@@ -43,20 +42,20 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
   return (
     <Space direction="vertical" size="large" style={{ width: "100%", maxWidth: 448 }}>
       <ApiErrorAlert
-        message={apiError ? t(apiError) : null}
-        title={t("errors.apiUnreachable")}
-        description={t("errors.apiUnreachableHint")}
+        message={apiError ? translate(apiError) : null}
+        title={translate("errors.apiUnreachable")}
+        description={translate("errors.apiUnreachableHint")}
       />
       <Space direction="vertical" align="center" size="middle">
-        <Title level={2}>{t("workspace.create.getStarted")}</Title>
-        <Text type="secondary">{t("workspace.create.joinLater")}</Text>
+        <Title level={2}>{translate("workspace.create.getStarted")}</Title>
+        <Text type="secondary">{translate("workspace.create.joinLater")}</Text>
       </Space>
-      <FormCard title={t("workspace.create.formTitle")}>
+      <FormCard title={translate("workspace.create.formTitle")}>
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
           <Input
-            placeholder={t("workspace.create.namePlaceholder")}
+            placeholder={translate("workspace.create.namePlaceholder")}
             value={createName}
-            onChange={(e) => setCreateName(e.target.value)}
+            onChange={(event) => setCreateName(event.target.value)}
             onPressEnter={handleCreate}
             size="large"
           />
@@ -67,7 +66,7 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
             onClick={handleCreate}
             block
           >
-            {t("workspace.create.submit")}
+            {translate("workspace.create.submit")}
           </Button>
         </Space>
       </FormCard>
