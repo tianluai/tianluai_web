@@ -35,6 +35,7 @@ import {
   useInvalidateDriveConnectionStatus,
 } from "@/domains/documents/drive.queries";
 import { useDriveOAuthUrlAlertMessage } from "@/domains/documents/hooks/use-drive-oauth-url-alert";
+import { pollDocumentIndexJobUntilTerminal } from "@/domains/documents/lib/poll-document-index-job";
 
 const MAX_FOLDERS = 3;
 
@@ -138,59 +139,50 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
   };
 
   const pollSyncStatus = async (jobId: string) => {
-    for (let pollAttempt = 0; pollAttempt < 120; pollAttempt += 1) {
-      const freshToken = await getToken({ skipCache: true });
-      const statusResult = await driveService.getSyncStatus(
-        freshToken,
-        workspaceId,
-        jobId,
+    const outcome = await pollDocumentIndexJobUntilTerminal({
+      workspaceId,
+      jobId,
+      getToken: () => getToken({ skipCache: true }),
+      fetchStatus: driveService.getSyncStatus,
+      onInProgress: () => setSyncInfo(translate("indexing")),
+    });
+
+    if (outcome.kind === "status_request_failed") {
+      const statusErrorMessage = outcome.unauthorized
+        ? translate("notSignedIn")
+        : outcome.errorMessage || translate("apiUnreachable");
+      setSyncError(
+        translate("syncFailedDetail", {
+          error: statusErrorMessage,
+        }),
       );
-      if (!statusResult.ok) {
-        const statusErrorMessage =
-          statusResult.error === "Unauthorized"
-            ? translate("notSignedIn")
-            : statusResult.error || translate("apiUnreachable");
-        setSyncError(
-          translate("syncFailedDetail", {
-            error: statusErrorMessage,
-          }),
-        );
-        return;
-      }
-
-      const { state, returnValue, failedReason } = statusResult.status;
-      if (state === "completed") {
-        const indexedChunks = Number(returnValue?.indexed ?? 0);
-        const indexedFiles = Number(returnValue?.files ?? 0);
-        if (indexedChunks === 0 || indexedFiles === 0) {
-          setSyncInfo(translate("doneNoFiles"));
-          return;
-        }
-        setSyncInfo(
-          translate("doneWithCounts", {
-            chunks: indexedChunks,
-            files: indexedFiles,
-          }),
-        );
-        return;
-      }
-
-      if (state === "failed") {
-        setSyncError(
-          translate("syncFailedDetail", {
-            error: failedReason || translate("apiUnreachable"),
-          }),
-        );
-        return;
-      }
-
-      setSyncInfo(translate("indexing"));
-      await new Promise((resolve) => {
-        setTimeout(resolve, 2000);
-      });
+      return;
     }
 
-    setSyncInfo(translate("indexingSlow"));
+    if (outcome.kind === "failed") {
+      setSyncError(
+        translate("syncFailedDetail", {
+          error: outcome.failedReason || translate("apiUnreachable"),
+        }),
+      );
+      return;
+    }
+
+    if (outcome.kind === "max_wait_reached") {
+      setSyncInfo(translate("indexingSlow"));
+      return;
+    }
+
+    if (outcome.indexedChunks === 0 || outcome.indexedFiles === 0) {
+      setSyncInfo(translate("doneNoFiles"));
+      return;
+    }
+    setSyncInfo(
+      translate("doneWithCounts", {
+        chunks: outcome.indexedChunks,
+        files: outcome.indexedFiles,
+      }),
+    );
   };
 
   const handleSyncNow = async () => {
