@@ -13,6 +13,23 @@ export type DriveAuthResponse = {
 
 export type DriveFolder = { id: string; name: string };
 
+export type DocumentIndexJobState =
+  | "waiting"
+  | "active"
+  | "completed"
+  | "failed"
+  | "delayed"
+  | "paused"
+  | "unknown";
+
+export type DocumentIndexJobStatus = {
+  id: string;
+  state: DocumentIndexJobState;
+  progress: number;
+  returnValue?: { indexed?: number; files?: number };
+  failedReason?: string | null;
+};
+
 /**
  * Google Drive REST calls for the documents domain.
  * HTTP concerns (headers, fetch, network errors) live in `@/lib/api/http`.
@@ -116,6 +133,69 @@ export const driveService = {
 
     return (await safeResponseJson<{ ok: boolean; error?: string }>(fetched.response)) ?? {
       ok: false,
+    };
+  },
+
+  /**
+   * POST /queue/document-index — enqueue workspace document indexing.
+   */
+  async startSync(
+    token: string | null,
+    workspaceId: string,
+  ): Promise<{ ok: true; jobId: string } | { ok: false; error?: string }> {
+    const query = new URLSearchParams({ workspaceId }).toString();
+    const fetched = await safeApiFetch(`/queue/document-index?${query}`, {
+      method: "POST",
+      token,
+    });
+    if (!fetched.ok) {
+      return { ok: false, error: fetched.error === "network" ? "network" : undefined };
+    }
+    const data = await safeResponseJson<{ jobId?: string; error?: string }>(fetched.response);
+    if (!fetched.response.ok || !data?.jobId) {
+      return { ok: false, error: data?.error };
+    }
+    return { ok: true, jobId: data.jobId };
+  },
+
+  /**
+   * GET /queue/document-index — fetch status for a queued indexing job.
+   */
+  async getSyncStatus(
+    token: string | null,
+    workspaceId: string,
+    jobId: string,
+  ): Promise<{ ok: true; status: DocumentIndexJobStatus } | { ok: false; error?: string }> {
+    const query = new URLSearchParams({ workspaceId, jobId }).toString();
+    const fetched = await safeApiFetch(`/queue/document-index?${query}`, { token });
+    if (!fetched.ok) {
+      return { ok: false, error: fetched.error === "network" ? "network" : undefined };
+    }
+    type QueueDocumentIndexPayload = {
+      id?: string;
+      state?: DocumentIndexJobState;
+      progress?: number;
+      returnValue?: { indexed?: number; files?: number };
+      failedReason?: string | null;
+      error?: string;
+    };
+    const payload = await safeResponseJson<QueueDocumentIndexPayload>(fetched.response);
+    if (payload == null) {
+      return { ok: false };
+    }
+    const { id, state, progress, returnValue, failedReason, error } = payload;
+    if (!fetched.response.ok || !id || !state) {
+      return { ok: false, error: error };
+    }
+    return {
+      ok: true,
+      status: {
+        id,
+        state,
+        progress: Number(progress ?? 0),
+        returnValue,
+        failedReason: failedReason ?? null,
+      },
     };
   },
 };

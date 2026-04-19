@@ -35,6 +35,7 @@ import {
   useInvalidateDriveConnectionStatus,
 } from "@/domains/documents/drive.queries";
 import { useDriveOAuthUrlAlertMessage } from "@/domains/documents/hooks/use-drive-oauth-url-alert";
+import { pollDocumentIndexJobUntilTerminal } from "@/domains/documents/lib/poll-document-index-job";
 
 const MAX_FOLDERS = 3;
 
@@ -59,6 +60,9 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
   const [pickerSelectedIds, setPickerSelectedIds] = useState<Set<string>>(new Set());
   const [savingFolders, setSavingFolders] = useState(false);
   const [folderError, setFolderError] = useState<string | null>(null);
+  const [syncLoading, setSyncLoading] = useState(false);
+  const [syncInfo, setSyncInfo] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const statusQueryEnabled =
     isLoaded && isSignedIn && !!userId && !!workspaceId;
@@ -134,6 +138,80 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
     setFolderError(data.error || translate("saveSelectionFailed"));
   };
 
+  const pollSyncStatus = async (jobId: string) => {
+    const outcome = await pollDocumentIndexJobUntilTerminal({
+      workspaceId,
+      jobId,
+      getToken: () => getToken({ skipCache: true }),
+      fetchStatus: driveService.getSyncStatus,
+      onInProgress: () => setSyncInfo(translate("indexing")),
+    });
+
+    if (outcome.kind === "status_request_failed") {
+      const statusErrorMessage = outcome.unauthorized
+        ? translate("notSignedIn")
+        : outcome.errorMessage || translate("apiUnreachable");
+      setSyncError(
+        translate("syncFailedDetail", {
+          error: statusErrorMessage,
+        }),
+      );
+      return;
+    }
+
+    if (outcome.kind === "failed") {
+      setSyncError(
+        translate("syncFailedDetail", {
+          error: outcome.failedReason || translate("apiUnreachable"),
+        }),
+      );
+      return;
+    }
+
+    if (outcome.kind === "max_wait_reached") {
+      setSyncInfo(translate("indexingSlow"));
+      return;
+    }
+
+    if (outcome.indexedChunks === 0 || outcome.indexedFiles === 0) {
+      setSyncInfo(translate("doneNoFiles"));
+      return;
+    }
+    setSyncInfo(
+      translate("doneWithCounts", {
+        chunks: outcome.indexedChunks,
+        files: outcome.indexedFiles,
+      }),
+    );
+  };
+
+  const handleSyncNow = async () => {
+    if (!workspaceId || !userId) return;
+    setSyncError(null);
+    setSyncInfo(null);
+    setSyncLoading(true);
+    const token = await getToken({ skipCache: true });
+    const startSyncResult = await driveService.startSync(token, workspaceId);
+    if (!startSyncResult.ok) {
+      setSyncLoading(false);
+      setSyncError(
+        translate("syncFailedDetail", {
+          error: startSyncResult.error || translate("apiUnreachable"),
+        }),
+      );
+      return;
+    }
+
+    if (!startSyncResult.jobId) {
+      setSyncLoading(false);
+      setSyncError(translate("noJobId"));
+      return;
+    }
+
+    await pollSyncStatus(startSyncResult.jobId);
+    setSyncLoading(false);
+  };
+
   if (isLoaded && !isSignedIn) {
     return (
       <Layout className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -165,6 +243,8 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
       {connectAlertMessage && (
         <Alert type="error" message={connectAlertMessage} className="mt-4" showIcon />
       )}
+      {syncInfo && <Alert type="info" message={syncInfo} className="mt-4" showIcon />}
+      {syncError && <Alert type="error" message={syncError} className="mt-4" showIcon />}
 
       <Card title={translate("cardTitle")} className="mt-6">
         {driveStatusLoading && <Spin />}
@@ -198,6 +278,14 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
               </Typography.Text>
               <Button onClick={openFolderPicker}>
                 {status.selectedFolderIds.length ? translate("changeFolders") : translate("chooseFolders")}
+              </Button>
+              <Button
+                type="primary"
+                loading={syncLoading}
+                disabled={status.selectedFolderIds.length === 0 || syncLoading}
+                onClick={handleSyncNow}
+              >
+                {translate("syncNow")}
               </Button>
             </Space>
           </>

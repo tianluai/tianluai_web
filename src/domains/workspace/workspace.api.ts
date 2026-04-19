@@ -25,3 +25,12 @@ export function createWorkspace(
     body: JSON.stringify({ name }),
   });
 }
+
+export function deleteWorkspace(
+  token: string,
+  id: string
+): Promise<ApiResult<{ ok: true }>> {
+  return apiFetch<{ ok: true }>(token, `/workspaces/${id}`, {
+    method: "DELETE",
+  });
+}

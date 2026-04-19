@@ -23,6 +23,7 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
   const create = useCreateWorkspace();
 
   const handleCreate = async () => {
+    if (create.isPending) return;
     const name = createName.trim();
     if (!name) {
       message.warning(translate("workspace.create.enterName"));
@@ -57,12 +58,14 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
             value={createName}
             onChange={(event) => setCreateName(event.target.value)}
             onPressEnter={handleCreate}
+            disabled={create.isPending}
             size="large"
           />
           <Button
             type="primary"
             size="large"
             loading={create.isPending}
+            disabled={create.isPending}
             onClick={handleCreate}
             block
           >
