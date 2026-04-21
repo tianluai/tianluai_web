@@ -11,7 +11,13 @@
     },
     "picker": {
       "title": "Choose a workspace",
-      "placeholder": "Select a workspace"
+      "placeholder": "Select a workspace",
+      "deleteAria": "Delete workspace: {name}",
+      "deleteConfirmTitle": "Delete this workspace?",
+      "deleteConfirmDescription": "This action cannot be undone.",
+      "deleteConfirmOk": "Delete",
+      "deleteConfirmCancel": "Cancel",
+      "deleteSuccess": "Workspace deleted."
     },
     "notFound": {
       "title": "Workspace not found",

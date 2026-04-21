@@ -9,6 +9,7 @@ import {
   fetchWorkspaces,
   getWorkspace,
   createWorkspace,
+  deleteWorkspace,
 } from "./workspace.api";
 
 function unwrap<T>(result: ApiResult<T>, signOut: () => void): T {
@@ -83,6 +84,24 @@ export function useCreateWorkspace() {
         throw new Error("unauthorized");
       }
       return unwrap(await createWorkspace(token, name), signOut);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+    },
+  });
+}
+
+export function useDeleteWorkspace() {
+  const { getToken, signOut } = useAuth();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (workspaceId: string) => {
+      const token = await getToken();
+      if (!token) {
+        signOut();
+        throw new Error("unauthorized");
+      }
+      return unwrap(await deleteWorkspace(token, workspaceId), signOut);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["workspaces"] });

@@ -11,7 +11,13 @@
     },
     "picker": {
       "title": "Elige un espacio",
-      "placeholder": "Selecciona un espacio"
+      "placeholder": "Selecciona un espacio",
+      "deleteAria": "Eliminar espacio: {name}",
+      "deleteConfirmTitle": "¿Eliminar este espacio?",
+      "deleteConfirmDescription": "Esta acción no se puede deshacer.",
+      "deleteConfirmOk": "Eliminar",
+      "deleteConfirmCancel": "Cancelar",
+      "deleteSuccess": "Espacio eliminado."
     },
     "notFound": {
       "title": "Espacio no encontrado",
