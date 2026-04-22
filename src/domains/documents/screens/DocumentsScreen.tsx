@@ -8,7 +8,7 @@
  * - **`DocumentsScreenBody`** uses hooks that read the URL; in the App Router they must live under `<Suspense>`, so the body is wrapped by `DocumentsScreen`.
  */
 
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth/use-auth";
 import { useMemo, useState, Suspense } from "react";
 import {
   Alert,
@@ -45,9 +45,7 @@ type DocumentsScreenProps = {
 };
 
 function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
-  const { getToken, isSignedIn, isLoaded } = useAuth();
-  const { user } = useUser();
-  const userId = user?.id ?? "";
+  const { getToken, isSignedIn, isLoaded, userId } = useAuth();
   const translate = useTranslations("documents");
   const locale = useLocale();
   const oauthUrlAlert = useDriveOAuthUrlAlertMessage();

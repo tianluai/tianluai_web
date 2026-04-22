@@ -1,23 +1,36 @@
 "use client";
 
-import { useAuth as useClerkAuth, useClerk } from "@clerk/nextjs";
+import { getSession, signOut as nextAuthSignOut, useSession } from "next-auth/react";
+
 export type SignOutOptions = { redirectUrl?: string };
 
+export type GetTokenOptions = { skipCache?: boolean };
+
 /**
- * Clerk auth helpers.
+ * NextAuth (Google) session helpers.
  *
- * - **`isLoaded`**: Clerk has finished its client bootstrap; only then is **`isSignedIn`** reliable.
- *   Before that, treat session as unknown (show a shell or don’t branch on `isSignedIn`).
- * - There is no separate `isLoading` flag; the “still resolving” phase is **`!isLoaded`**.
+ * - **`isLoaded`**: Session status left `loading`; only then is **`isSignedIn`** reliable.
+ * - **`getToken`**: Returns the HS256 API token minted for the Nest backend (`Authorization: Bearer`).
  */
 export function useAuth() {
-  const { isSignedIn, isLoaded, getToken } = useClerkAuth();
-  const { signOut: clerkSignOut } = useClerk();
+  const { data: session, status } = useSession();
+  const isLoaded = status !== "loading";
+  const isSignedIn = status === "authenticated";
+  const userId = session?.user?.id ?? "";
 
-  const signOut = (options?: SignOutOptions) => {
-    const redirectUrl = options?.redirectUrl ?? "/sign-in";
-    return clerkSignOut({ redirectUrl });
+  const getToken = async (options?: GetTokenOptions) => {
+    if (options?.skipCache) {
+      const fresh = await getSession();
+      return fresh?.apiAccessToken ?? null;
+    }
+    return session?.apiAccessToken ?? null;
   };
 
-  return { isSignedIn, isLoaded, getToken, signOut };
+  const signOut = (options?: SignOutOptions) => {
+    return nextAuthSignOut({
+      callbackUrl: options?.redirectUrl ?? "/sign-in",
+    });
+  };
+
+  return { isSignedIn, isLoaded, getToken, signOut, userId };
 }

@@ -1,36 +1,63 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+// Clerk (paused):
+// import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import createIntlMiddleware from "next-intl/middleware";
-import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import type { NextAuthRequest } from "next-auth";
 import { routing } from "@/i18n/routing";
+import { auth } from "./auth";
 
 const handleI18n = createIntlMiddleware(routing);
 
-const isPublicRoute = createRouteMatcher([
-  "/",
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-]);
+// Clerk (paused):
+// const isPublicRoute = createRouteMatcher([
+//   "/",
+//   "/sign-in(.*)",
+//   "/sign-up(.*)",
+// ]);
+// export default clerkMiddleware(async (auth, req: NextRequest) => {
+//   const pathname = req.nextUrl.pathname;
+//   if (pathname.startsWith("/api")) {
+//     return NextResponse.next();
+//   }
+//   if (req.nextUrl.searchParams.has("__clerk_handshake")) {
+//     return NextResponse.next();
+//   }
+//   if (!isPublicRoute(req)) {
+//     await auth.protect();
+//   }
+//   return handleI18n(req);
+// });
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
+const isPublicPath = (pathname: string) =>
+  pathname === "/" ||
+  pathname.startsWith("/sign-in") ||
+  pathname.startsWith("/sign-up") ||
+  pathname.startsWith("/api/auth");
+
+function redirectUnauthenticatedToSignIn(req: NextAuthRequest): NextResponse {
+  const signIn = new URL("/sign-in", req.url);
+  const returnTo = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+  const shouldAttachCallback = Boolean(returnTo) && returnTo !== "/sign-in";
+  if (shouldAttachCallback) signIn.searchParams.set("callbackUrl", returnTo);
+  return NextResponse.redirect(signIn);
+}
+
+export default auth((req: NextAuthRequest) => {
   const pathname = req.nextUrl.pathname;
-  if (pathname.startsWith("/api")) {
+  if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
-  // Clerk handshake on `/` must not be redirected by next-intl (`localePrefix: "always"` drops/breaks it).
-  if (req.nextUrl.searchParams.has("__clerk_handshake")) {
+  if (pathname.startsWith("/api/auth")) {
     return NextResponse.next();
   }
-  if (!isPublicRoute(req)) {
-    await auth.protect();
+  if (!isPublicPath(pathname) && !req.auth) {
+    return redirectUnauthenticatedToSignIn(req);
   }
   return handleI18n(req);
 });
 
 export const config = {
   matcher: [
-    // `'/((?!…).*)'` alone often does not match the root path `/`, so next-intl never rewrites
-    // `/` → `/en/...` and all `[locale]` routes 404. See vercel/next.js#62078.
     "/",
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/(api|trpc)(.*)",

@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth/use-auth";
 import { isAuthShellSkippedPath } from "@/lib/auth/public-paths";
 
 /**
- * On protected routes, Clerk’s `isSignedIn` is meaningless until `isLoaded` is true.
+ * On protected routes, `isSignedIn` is meaningless until the session has finished loading (`isLoaded`).
  * This boundary shows one global loading shell instead of repeating that in every page.
  *
  * Public routes (aligned with middleware) render children immediately so sign-in/up stay usable.

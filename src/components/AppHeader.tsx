@@ -1,11 +1,12 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+// Clerk (paused): import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Flex } from "antd";
 import { Button } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
+import { UserAccountMenu } from "@/components/UserAccountMenu";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { Link } from "@/i18n/navigation";
 
@@ -52,12 +53,8 @@ export function AppHeader() {
               {translateWorkspaceSwitcher("createWorkspace")}
             </Button>
           </Link>
-          <UserButton
-            afterSignOutUrl="/"
-            appearance={{
-              elements: { avatarBox: "h-8 w-8" },
-            }}
-          />
+          {/* Clerk (paused): <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-8 w-8" } }} /> */}
+          <UserAccountMenu />
         </>
       )}
     </Flex>
