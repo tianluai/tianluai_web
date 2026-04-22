@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuth } from "@clerk/nextjs";
+import { useAuth } from "@/lib/auth/use-auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { driveService, type DriveConnectionStatus } from "./services/drive-api";
 

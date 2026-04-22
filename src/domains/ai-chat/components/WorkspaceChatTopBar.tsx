@@ -1,11 +1,12 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+// Clerk (paused): import { UserButton } from "@clerk/nextjs";
 import { MenuOutlined } from "@ant-design/icons";
 import { Flex, theme } from "antd";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
+import { UserAccountMenu } from "@/components/UserAccountMenu";
 import { Link } from "@/i18n/navigation";
 import { WorkspacePickerDropdown } from "@/components/workspace-switcher";
 
@@ -55,12 +56,8 @@ export function WorkspaceChatTopBar({
           </Button>
         </Link>
         <LocaleSelect />
-        <UserButton
-          afterSignOutUrl="/"
-          appearance={{
-            elements: { avatarBox: "h-8 w-8" },
-          }}
-        />
+        {/* Clerk (paused): <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-8 w-8" } }} /> */}
+        <UserAccountMenu />
       </Flex>
     </Flex>
   );

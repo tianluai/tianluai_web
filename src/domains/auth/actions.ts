@@ -1,8 +1,9 @@
 "use server";
 
-import { auth } from "@clerk/nextjs/server";
+// Clerk (paused): import { auth } from "@clerk/nextjs/server";
+import { auth } from "../../../auth";
 
 export async function getSessionAction() {
-  const { userId } = await auth();
-  return { userId };
+  const session = await auth();
+  return { userId: session?.user?.id ?? null };
 }

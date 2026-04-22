@@ -68,7 +68,18 @@
   "auth": {
     "notSignedIn": "No has iniciado sesión. Inicia sesión e inténtalo de nuevo.",
     "apiNotConfigured": "NEXT_PUBLIC_API_URL no está configurada. Revisa tu entorno.",
-    "logOut": "Cerrar sesión"
+    "logOut": "Cerrar sesión",
+    "accountMenuAria": "Menú de cuenta",
+    "signIn": {
+      "title": "Iniciar sesión",
+      "google": "Continuar con Google",
+      "linkSignUp": "Crear una cuenta"
+    },
+    "signUp": {
+      "title": "Registrarse",
+      "google": "Continuar con Google",
+      "linkSignIn": "Iniciar sesión"
+    }
   },
   "common": {
     "errorGeneric": "Algo salió mal. Inténtalo de nuevo.",

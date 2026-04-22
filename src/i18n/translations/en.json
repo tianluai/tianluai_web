@@ -68,7 +68,18 @@
   "auth": {
     "notSignedIn": "Not signed in. Please sign in and try again.",
     "apiNotConfigured": "NEXT_PUBLIC_API_URL is not set. Check your environment.",
-    "logOut": "Log out"
+    "logOut": "Log out",
+    "accountMenuAria": "Account menu",
+    "signIn": {
+      "title": "Sign in",
+      "google": "Continue with Google",
+      "linkSignUp": "Create an account"
+    },
+    "signUp": {
+      "title": "Sign up",
+      "google": "Continue with Google",
+      "linkSignIn": "Sign in instead"
+    }
   },
   "common": {
     "errorGeneric": "Something went wrong. Please try again.",

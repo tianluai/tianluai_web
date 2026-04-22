@@ -1,12 +1,13 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+// Clerk (paused): import { UserButton } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { DownOutlined } from "@ant-design/icons";
 import { Flex } from "antd";
 import { useTranslations } from "next-intl";
 import { Button, Dropdown } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
+import { UserAccountMenu } from "@/components/UserAccountMenu";
 import { useWorkspaces } from "@/domains/workspace/workspace.queries";
 import type { MenuProps } from "antd";
 
@@ -91,14 +92,8 @@ export function WorkspaceSwitcher({
           </Button>
         </span>
       </Dropdown>
-      <UserButton
-        afterSignOutUrl="/"
-        appearance={{
-          elements: {
-            avatarBox: "h-8 w-8",
-          },
-        }}
-      />
+      {/* Clerk (paused): <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-8 w-8" } }} /> */}
+      <UserAccountMenu />
     </Flex>
   );
 }
