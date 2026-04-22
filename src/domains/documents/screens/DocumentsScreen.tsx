@@ -9,7 +9,7 @@
  */
 
 import { useAuth, useUser } from "@clerk/nextjs";
-import { useState, Suspense } from "react";
+import { useMemo, useState, Suspense } from "react";
 import {
   Alert,
   Button,
@@ -19,10 +19,11 @@ import {
   Modal,
   Space,
   Spin,
+  Tag,
   Typography,
 } from "antd";
 import { GoogleOutlined } from "@ant-design/icons";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PageLayout } from "@/components/ui";
 import { useWorkspaces } from "@/domains/workspace/workspace.queries";
@@ -48,10 +49,14 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
   const { user } = useUser();
   const userId = user?.id ?? "";
   const translate = useTranslations("documents");
+  const locale = useLocale();
   const oauthUrlAlert = useDriveOAuthUrlAlertMessage();
   const { data: workspaces = [] } = useWorkspaces();
-  const workspaceName =
-    workspaces.find((workspaceItem) => workspaceItem.id === workspaceId)?.name ?? workspaceId;
+  const workspaceDisplayName = useMemo(() => {
+    const name = workspaces.find((w) => w.id === workspaceId)?.name?.trim();
+    if (name) return name;
+    return translate("workspaceDefaultLabel");
+  }, [workspaces, workspaceId, translate]);
 
   const [connectError, setConnectError] = useState<string | null>(null);
   const [folderPickerOpen, setFolderPickerOpen] = useState(false);
@@ -69,6 +74,18 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
   const statusQuery = useDriveConnectionStatus(workspaceId, statusQueryEnabled);
   const invalidateDriveStatus = useInvalidateDriveConnectionStatus();
   const status = statusQuery.data;
+  const lastSyncedFormatted = useMemo(() => {
+    const iso = status?.lastGoogleDriveSyncAt;
+    if (!iso) return null;
+    try {
+      return new Intl.DateTimeFormat(locale, {
+        dateStyle: "medium",
+        timeStyle: "short",
+      }).format(new Date(iso));
+    } catch {
+      return null;
+    }
+  }, [status?.lastGoogleDriveSyncAt, locale]);
   const driveStatusLoading =
     (isSignedIn && isLoaded && !userId) ||
     (statusQueryEnabled && statusQuery.isPending);
@@ -210,6 +227,7 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
 
     await pollSyncStatus(startSyncResult.jobId);
     setSyncLoading(false);
+    invalidateDriveStatus(workspaceId);
   };
 
   if (isLoaded && !isSignedIn) {
@@ -237,7 +255,7 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
     <PageLayout centered={false}>
       <Typography.Title level={4}>{translate("pageTitle")}</Typography.Title>
       <Typography.Paragraph type="secondary" className="mt-1">
-        {translate("pageLeadForWorkspace", { workspaceName })}
+        {translate("pageLeadMultiSource", { workspaceName: workspaceDisplayName })}
       </Typography.Paragraph>
 
       {connectAlertMessage && (
@@ -246,51 +264,207 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
       {syncInfo && <Alert type="info" message={syncInfo} className="mt-4" showIcon />}
       {syncError && <Alert type="error" message={syncError} className="mt-4" showIcon />}
 
-      <Card title={translate("cardTitle")} className="mt-6">
-        {driveStatusLoading && <Spin />}
-        {!driveStatusLoading && status && !status.connected && (
-          <>
-            <Typography.Paragraph type="secondary">{translate("connectLead")}</Typography.Paragraph>
-            {!status.driveConfigured && (
-              <Alert
-                type="warning"
-                message={translate("adminMustEnableDrive")}
-                className="mb-4"
-                showIcon
-              />
-            )}
-            <Button type="primary" icon={<GoogleOutlined />} onClick={handleConnectDrive}>
-              {translate("connectButton")}
-            </Button>
-          </>
-        )}
-        {!driveStatusLoading && status && status.connected && (
-          <>
-            <Typography.Paragraph type="secondary">
-              {translate("chooseFoldersLead", { max: MAX_FOLDERS })}
-            </Typography.Paragraph>
-            <Space className="mt-4" wrap>
-              <Typography.Text>
-                {translate("selectedCount", {
-                  current: status.selectedFolderIds.length,
-                  max: MAX_FOLDERS,
-                })}
-              </Typography.Text>
-              <Button onClick={openFolderPicker}>
-                {status.selectedFolderIds.length ? translate("changeFolders") : translate("chooseFolders")}
-              </Button>
-              <Button
-                type="primary"
-                loading={syncLoading}
-                disabled={status.selectedFolderIds.length === 0 || syncLoading}
-                onClick={handleSyncNow}
-              >
-                {translate("syncNow")}
-              </Button>
+      <Typography.Title level={5} className="mt-8 mb-1">
+        {translate("sourcesOverviewTitle")}
+      </Typography.Title>
+      <Typography.Paragraph type="secondary" className="mb-4 !mt-0">
+        {translate("sourcesOverviewIntro")}
+      </Typography.Paragraph>
+
+      {/* Document sources: only Google Drive today; add another Card here when a new integration ships. */}
+      <div className="max-w-3xl">
+        <Card
+          className="min-h-0"
+          title={
+            <Space align="center">
+              <span>{translate("sourceGoogleDriveTitle")}</span>
+              {status && !driveStatusLoading ? (
+                <Tag
+                  color={
+                    status.connected
+                      ? "green"
+                      : status.driveSessionExpired
+                        ? "warning"
+                        : "default"
+                  }
+                >
+                  {status.connected
+                    ? translate("sourceGoogleDriveStatusConnected")
+                    : status.driveSessionExpired
+                      ? translate("sourceGoogleDriveStatusReconnect")
+                      : translate("sourceGoogleDriveStatusNotConnected")}
+                </Tag>
+              ) : null}
             </Space>
-          </>
-        )}
-      </Card>
+          }
+        >
+          {driveStatusLoading && <Spin />}
+          {!driveStatusLoading && status && (
+            <>
+              <Typography.Paragraph type="secondary" className="!mt-0 !mb-4">
+                {translate("sourceGoogleDriveSubtitle")}
+              </Typography.Paragraph>
+              <Typography.Text type="secondary" className="mb-2 block">
+                {lastSyncedFormatted
+                  ? translate("lastSynced", { date: lastSyncedFormatted })
+                  : translate("lastSyncedNever")}
+              </Typography.Text>
+              <Typography.Text type="secondary" className="mb-4 block">
+                {status.indexedVectorCount !== null
+                  ? translate("indexedChunksInVectorStore", {
+                      count: status.indexedVectorCount,
+                    })
+                  : translate("indexedChunksUnknown")}
+              </Typography.Text>
+
+              {status.driveSessionExpired && (
+                <Alert
+                  type="warning"
+                  message={translate("driveSessionExpiredLead")}
+                  className="mb-4"
+                  showIcon
+                />
+              )}
+
+              {!status.connected &&
+                !status.driveSessionExpired &&
+                (status.indexedVectorCount ?? 0) > 0 && (
+                  <Alert
+                    type="info"
+                    message={translate("reconnectPromptIndexedData")}
+                    className="mb-4"
+                    showIcon
+                  />
+                )}
+
+              {(status.connected || status.driveSessionExpired) && (
+                <>
+                  <Typography.Paragraph type="secondary">
+                    {status.driveSessionExpired
+                      ? translate("driveSessionExpiredFoldersLead")
+                      : status.selectedFolderIds.length === 0
+                        ? translate("chooseFoldersLead", { max: MAX_FOLDERS })
+                        : translate("manageFoldersLead", { max: MAX_FOLDERS })}
+                  </Typography.Paragraph>
+                  <Space className="mt-2" wrap>
+                    <Typography.Text>
+                      {translate("selectedCount", {
+                        current: status.selectedFolderIds.length,
+                        max: MAX_FOLDERS,
+                      })}
+                    </Typography.Text>
+                    <Button onClick={openFolderPicker} disabled={!status.connected}>
+                      {status.selectedFolderIds.length ? translate("changeFolders") : translate("chooseFolders")}
+                    </Button>
+                    <Button
+                      type="primary"
+                      loading={syncLoading}
+                      disabled={
+                        status.selectedFolderIds.length === 0 || syncLoading || !status.connected
+                      }
+                      onClick={handleSyncNow}
+                    >
+                      {translate("syncNow")}
+                    </Button>
+                  </Space>
+
+                  {(status.selectedFolders.length > 0 || (status.indexedSources?.totalFiles ?? 0) > 0) && (
+                    <div className="mt-6 border-t border-neutral-200 pt-6 dark:border-neutral-700">
+                      <Typography.Title level={5} className="!mb-3">
+                        {translate("sourcesSectionTitle")}
+                      </Typography.Title>
+
+                      {status.selectedFolders.length > 0 && (
+                        <div className="mb-4">
+                          <Typography.Text type="secondary" className="mb-2 block">
+                            {translate("connectedFoldersTitle")}
+                          </Typography.Text>
+                          <Space wrap size={[8, 8]}>
+                            {status.selectedFolders.map((folder) => (
+                              <Tag key={folder.id} color="blue">
+                                {folder.name}
+                              </Tag>
+                            ))}
+                          </Space>
+                        </div>
+                      )}
+
+                      <div>
+                        <Typography.Text type="secondary" className="mb-2 block">
+                          {translate("indexedFilesTitle")}
+                        </Typography.Text>
+                        {status.indexedSources && status.indexedSources.totalFiles > 0 ? (
+                          <>
+                            <Typography.Text type="secondary" className="mb-2 block">
+                              {translate("totalFilesLabel", { count: status.indexedSources.totalFiles })}
+                            </Typography.Text>
+                            <ul className="m-0 list-disc space-y-1 pl-5">
+                              {status.indexedSources.fileNames.map((name, index) => (
+                                <li key={`${name}-${index}`}>
+                                  <Typography.Text>{name}</Typography.Text>
+                                </li>
+                              ))}
+                            </ul>
+                            {status.indexedSources.totalFiles > status.indexedSources.fileNames.length ? (
+                              <Typography.Text type="secondary" className="mt-2 block">
+                                {translate("indexedFilesMore", {
+                                  count:
+                                    status.indexedSources.totalFiles - status.indexedSources.fileNames.length,
+                                })}
+                              </Typography.Text>
+                            ) : null}
+                          </>
+                        ) : (
+                          <Typography.Paragraph type="secondary" className="!mb-0">
+                            {translate("indexedFilesEmpty")}
+                          </Typography.Paragraph>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!status.connected && status.driveSessionExpired && (
+                <Space direction="vertical" className="mt-6 w-full" size="middle">
+                  <Typography.Paragraph type="secondary" className="!mb-0">
+                    {translate("reconnectLeadShort")}
+                  </Typography.Paragraph>
+                  {!status.driveConfigured && (
+                    <Alert
+                      type="warning"
+                      message={translate("adminMustEnableDrive")}
+                      showIcon
+                    />
+                  )}
+                  <Button type="primary" icon={<GoogleOutlined />} onClick={handleConnectDrive}>
+                    {translate("reconnectButton")}
+                  </Button>
+                </Space>
+              )}
+
+              {!status.connected && !status.driveSessionExpired && (
+                <>
+                  <Typography.Paragraph type="secondary" className="mt-6">
+                    {translate("connectLead")}
+                  </Typography.Paragraph>
+                  {!status.driveConfigured && (
+                    <Alert
+                      type="warning"
+                      message={translate("adminMustEnableDrive")}
+                      className="mb-4"
+                      showIcon
+                    />
+                  )}
+                  <Button type="primary" icon={<GoogleOutlined />} onClick={handleConnectDrive}>
+                    {translate("connectButton")}
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+        </Card>
+      </div>
 
       <Modal
         title={translate("modalTitle", { max: MAX_FOLDERS })}

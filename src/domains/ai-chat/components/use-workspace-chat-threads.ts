@@ -81,7 +81,9 @@ export function useWorkspaceChatThreads(args: {
   const activeThreadId = state.activeThreadId;
   const messages = state.messages;
 
-  // Load threads on workspace change
+  // Load threads only when the workspace changes. Do NOT depend on i18n strings:
+  // when next-intl finishes hydrating or the locale updates, those values change and
+  // would otherwise reset the whole chat from storage mid-message (feels like a reload).
   useEffect(() => {
     if (!workspaceId) return;
     queueMicrotask(() => {
@@ -122,7 +124,8 @@ export function useWorkspaceChatThreads(args: {
         messages: nextActive ? loadMessages(workspaceId, nextActive) : [],
       });
     });
-  }, [workspaceId, initialAssistantMessage, defaultThreadTitle]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-sync when workspaceId changes; see comment above
+  }, [workspaceId]);
 
   const activeThread = useMemo(
     () => threads.find((thread) => thread.id === activeThreadId) ?? null,
@@ -206,27 +209,31 @@ export function useWorkspaceChatThreads(args: {
   const addMessage = useCallback(
     (messageInput: Omit<ChatMessage, "id" | "createdAt">) => {
       if (!activeThreadId) return;
-      const nextMessages: ChatMessage[] = [
-        ...messages,
-        { id: createThreadOrMessageId(), createdAt: Date.now(), ...messageInput } satisfies ChatMessage,
-      ];
-      saveMessages(workspaceId, activeThreadId, nextMessages);
+      // Always append from latest state. After `await` in the caller, a closure over `messages`
+      // would be stale and the assistant reply would overwrite the user message.
+      setState((previous) => {
+        const nextMessages: ChatMessage[] = [
+          ...previous.messages,
+          { id: createThreadOrMessageId(), createdAt: Date.now(), ...messageInput } satisfies ChatMessage,
+        ];
+        saveMessages(workspaceId, activeThreadId, nextMessages);
 
-      const now = Date.now();
-      const nextThreads = threads
-        .map((thread) => {
-          if (thread.id !== activeThreadId) return thread;
-          const title =
-            thread.title === defaultThreadTitle && messageInput.role === "user"
-              ? truncateTitle(messageInput.content)
-              : thread.title;
-          return { ...thread, updatedAt: now, title };
-        })
-        .sort((first, second) => second.updatedAt - first.updatedAt);
-      saveThreads(workspaceId, nextThreads);
-      setState((previous) => ({ ...previous, threads: nextThreads, messages: nextMessages }));
+        const now = Date.now();
+        const nextThreads = previous.threads
+          .map((thread) => {
+            if (thread.id !== activeThreadId) return thread;
+            const title =
+              thread.title === defaultThreadTitle && messageInput.role === "user"
+                ? truncateTitle(messageInput.content)
+                : thread.title;
+            return { ...thread, updatedAt: now, title };
+          })
+          .sort((first, second) => second.updatedAt - first.updatedAt);
+        saveThreads(workspaceId, nextThreads);
+        return { ...previous, threads: nextThreads, messages: nextMessages };
+      });
     },
-    [workspaceId, activeThreadId, messages, threads, defaultThreadTitle],
+    [workspaceId, activeThreadId, defaultThreadTitle],
   );
 
   const filteredThreads = useCallback(
