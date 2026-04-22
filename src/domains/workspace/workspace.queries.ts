@@ -70,6 +70,9 @@ export function useWorkspace(id: string) {
     },
     enabled: !!id,
     retry: false,
+    /** Avoid refetch-on-focus remounting chat while the user is mid-conversation. */
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 

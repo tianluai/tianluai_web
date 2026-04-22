@@ -2,8 +2,18 @@ import { safeApiFetch, safeResponseJson } from "@/lib/api/http";
 
 export type DriveConnectionStatus = {
   connected: boolean;
+  /** True when saved tokens exist but Google sign-in must be renewed (session still shows cached data). */
+  driveSessionExpired: boolean;
   driveConfigured: boolean;
   selectedFolderIds: string[];
+  /** Resolved folder names for selected ids (when connected). */
+  selectedFolders: { id: string; name: string }[];
+  /** Sample of file names the assistant can use; null when Drive is not connected. */
+  indexedSources: { fileNames: string[]; totalFiles: number } | null;
+  /** ISO timestamp of last successful Google Drive index job for this workspace. */
+  lastGoogleDriveSyncAt: string | null;
+  /** Approximate vector rows in Pinecone for this workspace (RAG); null if unavailable. */
+  indexedVectorCount: number | null;
 };
 
 export type DriveAuthResponse = {
@@ -53,12 +63,53 @@ export const driveService = {
     const raw = await safeResponseJson<Record<string, unknown>>(response);
     if (raw == null) return { ok: false };
 
+    const selectedFoldersRaw = raw.selectedFolders;
+    const selectedFolders = Array.isArray(selectedFoldersRaw)
+      ? selectedFoldersRaw
+          .map((item) => {
+            if (item && typeof item === "object" && "id" in item && "name" in item) {
+              const row = item as { id: unknown; name: unknown };
+              return {
+                id: typeof row.id === "string" ? row.id : "",
+                name: typeof row.name === "string" ? row.name : "",
+              };
+            }
+            return null;
+          })
+          .filter((row): row is { id: string; name: string } => !!row?.id)
+      : [];
+
+    const rawIndexed = raw.indexedSources;
+    let indexedSources: { fileNames: string[]; totalFiles: number } | null = null;
+    if (rawIndexed && typeof rawIndexed === "object" && !Array.isArray(rawIndexed)) {
+      const names = (rawIndexed as { fileNames?: unknown; totalFiles?: unknown }).fileNames;
+      const total = (rawIndexed as { totalFiles?: unknown }).totalFiles;
+      indexedSources = {
+        fileNames: Array.isArray(names) ? names.filter((n): n is string => typeof n === "string") : [],
+        totalFiles: typeof total === "number" ? total : 0,
+      };
+    }
+
+    const lastGoogleDriveSyncAt =
+      typeof raw.lastGoogleDriveSyncAt === "string" ? raw.lastGoogleDriveSyncAt : null;
+
+    const rawVectorCount = raw.indexedVectorCount;
+    const indexedVectorCount =
+      typeof rawVectorCount === "number" && Number.isFinite(rawVectorCount)
+        ? rawVectorCount
+        : null;
+
     return {
       ok: true,
       data: {
         connected: !!raw.connected,
+        driveSessionExpired: !!raw.driveSessionExpired,
         driveConfigured: !!raw.driveConfigured,
         selectedFolderIds: Array.isArray(raw.selectedFolderIds) ? (raw.selectedFolderIds as string[]) : [],
+        selectedFolders,
+        indexedSources,
+        lastGoogleDriveSyncAt,
+        indexedVectorCount,
       },
     };
   },

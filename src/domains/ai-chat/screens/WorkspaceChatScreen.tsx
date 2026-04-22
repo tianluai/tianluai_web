@@ -12,7 +12,8 @@ type WorkspaceChatScreenProps = {
 export function WorkspaceChatScreen({ workspaceId }: WorkspaceChatScreenProps) {
   const { data: workspace, isLoading } = useWorkspace(workspaceId);
 
-  if (isLoading) {
+  /** Only block the whole screen until we have workspace data once; background refetch must not unmount chat. */
+  if (isLoading && !workspace) {
     return (
       <div
         style={{

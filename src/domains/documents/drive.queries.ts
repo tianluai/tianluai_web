@@ -21,8 +21,13 @@ export function useDriveConnectionStatus(workspaceId: string, queryEnabled: bool
       if (!result.ok) {
         return {
           connected: false,
+          driveSessionExpired: false,
           driveConfigured: false,
           selectedFolderIds: [],
+          selectedFolders: [],
+          indexedSources: null,
+          lastGoogleDriveSyncAt: null,
+          indexedVectorCount: null,
         };
       }
       return result.data;
