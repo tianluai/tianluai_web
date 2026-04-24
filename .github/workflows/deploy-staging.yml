@@ -33,8 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     env:
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      NEXT_PUBLIC_CLERK_PROXY_URL: ${{ secrets.NEXT_PUBLIC_CLERK_PROXY_URL }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -59,8 +57,6 @@ jobs:
     environment: staging
     env:
       DOCR_REGISTRY: ${{ secrets.DOCR_REGISTRY }}
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-      NEXT_PUBLIC_CLERK_PROXY_URL: ${{ secrets.NEXT_PUBLIC_CLERK_PROXY_URL }}
       NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
       NEXT_PUBLIC_SENTRY_DSN: ${{ secrets.NEXT_PUBLIC_SENTRY_DSN }}
       SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -84,17 +80,6 @@ jobs:
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
       - run: doctl registry login --expiry-seconds 1200
-      - name: Verify Clerk publishable key is set (prefix only)
-        run: |
-          if [ -z "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}" ]; then
-            echo "::error::NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY is empty. Add it to Environment staging or repository secrets."
-            exit 1
-          fi
-          case "${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}" in
-            pk_live_*) echo "OK: publishable key uses pk_live_" ;;
-            pk_test_*) echo "OK: publishable key uses pk_test_" ;;
-            *) echo "::warning::NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY does not start with pk_live_ or pk_test_" ;;
-          esac
       - uses: docker/setup-buildx-action@v3
       - id: meta
         uses: docker/metadata-action@v5
@@ -110,8 +95,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-            NEXT_PUBLIC_CLERK_PROXY_URL=${{ env.NEXT_PUBLIC_CLERK_PROXY_URL }}
             NEXT_PUBLIC_API_URL=${{ env.NEXT_PUBLIC_API_URL }}
             NEXT_PUBLIC_SENTRY_DSN=${{ env.NEXT_PUBLIC_SENTRY_DSN }}
             SENTRY_ORG=${{ env.SENTRY_ORG }}
