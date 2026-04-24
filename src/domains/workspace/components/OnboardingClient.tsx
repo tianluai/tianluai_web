@@ -39,7 +39,7 @@ export function OnboardingClient({ apiError }: OnboardingClientProps) {
     setIsSubmittingWorkspace(true);
     create.mutate(name, {
       onSuccess: (workspace) => {
-        router.push(`/workspace/${workspace.id}`);
+        router.push(`/workspace/${workspace.id}/chat`);
       },
       onError: (error) => {
         message.error(translate(error.message));

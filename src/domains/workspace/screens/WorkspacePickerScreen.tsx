@@ -13,7 +13,7 @@ export function WorkspacePickerScreen() {
   useEffect(() => {
     if (isLoading) return;
     if (workspaces.length === 0) router.replace("/onboarding");
-    if (workspaces.length === 1) router.replace(`/workspace/${workspaces[0].id}`);
+    if (workspaces.length === 1) router.replace(`/workspace/${workspaces[0].id}/chat`);
   }, [workspaces, isLoading, router]);
 
   if (isLoading) return null;

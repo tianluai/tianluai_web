@@ -4,6 +4,7 @@ import { Layout } from "antd";
 import { usePathname } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { AuthSessionBoundary } from "@/components/AuthSessionBoundary";
+import { IntegrationsModalProvider } from "@/domains/integrations/IntegrationsModalContext";
 
 const { Header, Content } = Layout;
 
@@ -22,36 +23,38 @@ export function LocaleLayoutClient({ children }: { children: React.ReactNode }) 
   const chatFullBleed = isWorkspaceChatPath(pathname);
 
   return (
-    <Layout
-      style={{
-        minHeight: "100vh",
-        background: "#fff",
-      }}
-    >
-      {!chatFullBleed && (
-        <Header
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            borderBottom: "1px solid #f0f0f0",
-            background: "#fff",
-            paddingInline: 24,
-          }}
-        >
-          <AppHeader />
-        </Header>
-      )}
-      <Content
+    <IntegrationsModalProvider>
+      <Layout
         style={{
-          flex: 1,
-          display: chatFullBleed ? "flex" : undefined,
-          flexDirection: chatFullBleed ? "column" : undefined,
-          overflow: chatFullBleed ? "hidden" : undefined,
+          minHeight: "100vh",
+          background: "#fff",
         }}
       >
-        <AuthSessionBoundary>{children}</AuthSessionBoundary>
-      </Content>
-    </Layout>
+        {!chatFullBleed && (
+          <Header
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              borderBottom: "1px solid #f0f0f0",
+              background: "#fff",
+              paddingInline: 24,
+            }}
+          >
+            <AppHeader />
+          </Header>
+        )}
+        <Content
+          style={{
+            flex: 1,
+            display: chatFullBleed ? "flex" : undefined,
+            flexDirection: chatFullBleed ? "column" : undefined,
+            overflow: chatFullBleed ? "hidden" : undefined,
+          }}
+        >
+          <AuthSessionBoundary>{children}</AuthSessionBoundary>
+        </Content>
+      </Layout>
+    </IntegrationsModalProvider>
   );
 }

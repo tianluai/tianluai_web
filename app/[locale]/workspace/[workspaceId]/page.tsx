@@ -1,3 +1,3 @@
-import WorkspaceDetailPage from "@/domains/workspace/workspace-detail.page";
+import WorkspaceRedirectToChatPage from "@/domains/workspace/workspace-redirect-to-chat.page";
 
-export default WorkspaceDetailPage;
+export default WorkspaceRedirectToChatPage;

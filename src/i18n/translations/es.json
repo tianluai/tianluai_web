@@ -98,7 +98,34 @@
   },
   "nav": {
     "chat": "Chat",
-    "documents": "Documentos"
+    "integrations": "Integraciones"
+  },
+  "integrations": {
+    "title": "Integraciones",
+    "exploreTitle": "Explorar",
+    "searchPlaceholder": "Buscar integraciones",
+    "searchNoResults": "Ninguna integración coincide con tu búsqueda.",
+    "marketplaceTitle": "Marketplace",
+    "lead": "Conecta herramientas que el asistente del espacio pueda usar.",
+    "featuredSubtitle": "Selección destacada para este espacio",
+    "sectionFeatured": "Destacados",
+    "sectionTrending": "Tendencias",
+    "trendingLead": "Integraciones más populares en este espacio.",
+    "categoryTopPicks": "Top",
+    "categoryProductivity": "Productividad",
+    "categoryResearch": "Investigación y análisis",
+    "categoryDalle": "DALL·E",
+    "categoryLifestyle": "Estilo de vida",
+    "categoryProgramming": "Programación",
+    "categoryWriting": "Escritura",
+    "categoryEducation": "Educación",
+    "googleDrive": {
+      "title": "Google Drive",
+      "description": "Elige carpetas (solo lectura) para que el asistente responda a partir de tus archivos.",
+      "cardTeaser": "Acceso de solo lectura a carpetas — conecta para que el asistente responda con los archivos que elijas.",
+      "byProvider": "Por google.com",
+      "cta": "Abrir"
+    }
   },
   "documents": {
     "signInPrompt": "Inicia sesión para gestionar documentos.",

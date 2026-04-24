@@ -19,7 +19,7 @@ export function SignInScreen() {
           block
           size="large"
           icon={<GoogleOutlined />}
-          onClick={() => void signIn("google", { callbackUrl: "/onboarding" })}
+          onClick={() => void signIn("google", { callbackUrl: "/" })}
         >
           {translateSignIn("google")}
         </Button>

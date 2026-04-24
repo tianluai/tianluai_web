@@ -8,6 +8,7 @@ import { Button } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
 import { UserAccountMenu } from "@/components/UserAccountMenu";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
+import { useIntegrationsMarketplaceModal } from "@/domains/integrations/IntegrationsModalContext";
 import { Link } from "@/i18n/navigation";
 
 function useWorkspaceIdFromPath(): string | null {
@@ -21,6 +22,7 @@ export function AppHeader() {
   const translateWorkspaceSwitcher = useTranslations("workspaceSwitcher");
   const translateNav = useTranslations("nav");
   const workspaceId = useWorkspaceIdFromPath();
+  const { openMarketplace } = useIntegrationsMarketplaceModal();
 
   return (
     <Flex align="center" justify="flex-end" gap="middle" style={{ width: "100%" }}>
@@ -32,11 +34,9 @@ export function AppHeader() {
         </Link>
       )}
       {workspaceId && (
-        <Link href={`/workspace/${workspaceId}/documents`}>
-          <Button type="link" style={{ padding: 0 }}>
-            {translateNav("documents")}
-          </Button>
-        </Link>
+        <Button type="link" style={{ padding: 0 }} onClick={() => openMarketplace()}>
+          {translateNav("integrations")}
+        </Button>
       )}
       {workspaceId ? (
         <WorkspaceSwitcher currentWorkspaceId={workspaceId} />

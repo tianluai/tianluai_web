@@ -38,7 +38,7 @@ export default function DocumentsWorkspacePickerPage() {
         ) : (
           <Space direction="vertical" className="w-full" size="middle">
             {workspaces.map((workspace) => (
-              <Link key={workspace.id} href={`/workspace/${workspace.id}/documents`}>
+              <Link key={workspace.id} href={`/workspace/${workspace.id}/chat?integrations=1`}>
                 <Button type="default" block>
                   {workspace.name}
                 </Button>

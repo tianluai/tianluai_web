@@ -98,7 +98,34 @@
   },
   "nav": {
     "chat": "Chat",
-    "documents": "Documents"
+    "integrations": "Integrations"
+  },
+  "integrations": {
+    "title": "Integrations",
+    "exploreTitle": "Explore",
+    "searchPlaceholder": "Search integrations",
+    "searchNoResults": "No integrations match your search.",
+    "marketplaceTitle": "Marketplace",
+    "lead": "Connect tools your workspace assistant can use.",
+    "featuredSubtitle": "Curated top picks for this workspace",
+    "sectionFeatured": "Featured",
+    "sectionTrending": "Trending",
+    "trendingLead": "Most popular integrations in this workspace.",
+    "categoryTopPicks": "Top Picks",
+    "categoryProductivity": "Productivity",
+    "categoryResearch": "Research & Analysis",
+    "categoryDalle": "DALL·E",
+    "categoryLifestyle": "Lifestyle",
+    "categoryProgramming": "Programming",
+    "categoryWriting": "Writing",
+    "categoryEducation": "Education",
+    "googleDrive": {
+      "title": "Google Drive",
+      "description": "Pick folders (read-only) so the assistant can answer from your files.",
+      "cardTeaser": "Read-only folder access — connect so your assistant can answer from the files you choose.",
+      "byProvider": "By google.com",
+      "cta": "Open"
+    }
   },
   "documents": {
     "signInPrompt": "Sign in to manage documents.",

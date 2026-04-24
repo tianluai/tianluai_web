@@ -44,7 +44,7 @@ export function WorkspaceSelect({ workspaces }: WorkspaceSelectProps) {
             <Card
               key={workspace.id}
               hoverable
-              onClick={() => router.push(`/workspace/${workspace.id}`)}
+              onClick={() => router.push(`/workspace/${workspace.id}/chat`)}
               styles={{
                 body: {
                   padding: "14px 16px",
