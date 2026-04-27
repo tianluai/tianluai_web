@@ -7,8 +7,8 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui";
 import { LocaleSelect } from "@/components/LocaleSelect";
 import { UserAccountMenu } from "@/components/UserAccountMenu";
-import { Link } from "@/i18n/navigation";
 import { WorkspacePickerDropdown } from "@/components/workspace-switcher";
+import { useIntegrationsMarketplaceModal } from "@/domains/integrations/IntegrationsModalContext";
 
 type WorkspaceChatTopBarProps = {
   workspaceId: string;
@@ -24,6 +24,7 @@ export function WorkspaceChatTopBar({
   const translateNav = useTranslations("nav");
   const translateWorkspaceChat = useTranslations("workspace.chat");
   const { token } = theme.useToken();
+  const { openMarketplace } = useIntegrationsMarketplaceModal();
 
   return (
     <Flex
@@ -50,11 +51,13 @@ export function WorkspaceChatTopBar({
         <WorkspacePickerDropdown currentWorkspaceId={workspaceId} />
       </Flex>
       <Flex align="center" gap="middle">
-        <Link href={`/workspace/${workspaceId}/documents`}>
-          <Button type="text" style={{ padding: 0, color: token.colorTextSecondary }}>
-            {translateNav("documents")}
-          </Button>
-        </Link>
+        <Button
+          type="text"
+          style={{ padding: 0, color: token.colorTextSecondary }}
+          onClick={() => openMarketplace()}
+        >
+          {translateNav("integrations")}
+        </Button>
         <LocaleSelect />
         {/* Clerk (paused): <UserButton afterSignOutUrl="/" appearance={{ elements: { avatarBox: "h-8 w-8" } }} /> */}
         <UserAccountMenu />

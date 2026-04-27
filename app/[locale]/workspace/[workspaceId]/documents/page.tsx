@@ -1,3 +1,3 @@
-import WorkspaceDocumentsPage from "@/domains/documents/workspace-documents.page";
+import LegacyWorkspaceDocumentsRedirectPage from "@/domains/integrations/legacy-workspace-documents-redirect.page";
 
-export default WorkspaceDocumentsPage;
+export default LegacyWorkspaceDocumentsRedirectPage;

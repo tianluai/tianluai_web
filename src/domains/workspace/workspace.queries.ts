@@ -21,7 +21,7 @@ function unwrap<T>(result: ApiResult<T>, signOut: () => void): T {
   return result.data;
 }
 
-export function useSyncUser() {
+export function useSyncUser(options?: { enabled?: boolean }) {
   const { getToken, signOut } = useAuth();
   return useQuery({
     queryKey: ["user", "sync"],
@@ -35,6 +35,7 @@ export function useSyncUser() {
       unwrap(result, signOut);
       return true;
     },
+    enabled: options?.enabled ?? true,
     retry: false,
   });
 }

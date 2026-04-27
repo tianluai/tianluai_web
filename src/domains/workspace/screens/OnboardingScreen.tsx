@@ -17,7 +17,7 @@ export function OnboardingScreen() {
   useEffect(() => {
     if (createMode || !workspaces.data) return;
     if (workspaces.data.length === 1)
-      router.replace(`/workspace/${workspaces.data[0].id}`);
+      router.replace(`/workspace/${workspaces.data[0].id}/chat`);
     if (workspaces.data.length > 1) router.replace("/workspaces");
   }, [workspaces.data, createMode, router]);
 

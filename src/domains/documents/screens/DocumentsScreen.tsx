@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * Workspace “Google Drive” settings UI for `/workspace/[workspaceId]/documents`.
+ * Workspace Google Drive settings UI for `/workspace/[workspaceId]/integrations/google-drive`.
  *
- * - The **Next.js page** is `workspace-documents.page.tsx` (and `app/.../documents/page.tsx`), which only passes `workspaceId`.
+ * - Routed from `workspace-documents.page.tsx` (workspace param only).
  * - **`DocumentsScreen`** is what the page renders — the public domain entry for this route.
  * - **`DocumentsScreenBody`** uses hooks that read the URL; in the App Router they must live under `<Suspense>`, so the body is wrapped by `DocumentsScreen`.
  */
@@ -94,7 +94,7 @@ function DocumentsScreenBody({ workspaceId }: DocumentsScreenProps) {
     const token = await getToken({ skipCache: true });
     const returnUrl =
       typeof window !== "undefined"
-        ? `${window.location.origin}/workspace/${workspaceId}/documents?connected=1`
+        ? `${window.location.origin}/workspace/${workspaceId}/integrations/google-drive?connected=1`
         : "";
     const data = await driveService.getAuthUrl(token, { returnUrl, workspaceId });
     if (data.authUrl) {

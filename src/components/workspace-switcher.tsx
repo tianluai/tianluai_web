@@ -21,7 +21,7 @@ function buildWorkspaceMenuItems(args: {
     ...workspaces.map((workspace) => ({
       key: workspace.id,
       label: workspace.name,
-      onClick: () => router.push(`/workspace/${workspace.id}`),
+      onClick: () => router.push(`/workspace/${workspace.id}/chat`),
     })),
     { type: "divider" as const },
     {

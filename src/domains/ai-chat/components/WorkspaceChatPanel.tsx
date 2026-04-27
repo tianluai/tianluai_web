@@ -11,7 +11,7 @@ import {
   SendOutlined,
 } from "@ant-design/icons";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { useIntegrationsMarketplaceModal } from "@/domains/integrations/IntegrationsModalContext";
 import { isUnauthorized } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/use-auth";
 import { postRagChat } from "@/domains/ai-chat/rag.api";
@@ -96,6 +96,7 @@ export function WorkspaceChatPanel({
 }: WorkspaceChatPanelProps) {
   const translateWorkspaceChat = useTranslations("workspace.chat");
   const translateNav = useTranslations("nav");
+  const { openMarketplace } = useIntegrationsMarketplaceModal();
   const { getToken, signOut } = useAuth();
   const { token } = theme.useToken();
   const screens = Grid.useBreakpoint();
@@ -459,9 +460,13 @@ export function WorkspaceChatPanel({
                   style={{ marginTop: 8, maxWidth: 480, color: token.colorTextSecondary }}
                 >
                   {translateWorkspaceChat("sourcesHintLead")}{" "}
-                  <Link href={`/workspace/${workspaceId}/documents`} style={{ color: token.colorPrimary }}>
-                    {translateNav("documents")}
-                  </Link>
+                  <Button
+                    type="link"
+                    onClick={() => openMarketplace()}
+                    style={{ padding: 0, height: "auto", color: token.colorPrimary }}
+                  >
+                    {translateNav("integrations")}
+                  </Button>
                   .
                 </Typography.Text>
                 <Flex wrap gap="small" justify="center" style={{ marginTop: 28, maxWidth: 720 }}>
